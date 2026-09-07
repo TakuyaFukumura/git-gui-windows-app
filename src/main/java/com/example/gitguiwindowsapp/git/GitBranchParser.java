@@ -17,7 +17,8 @@ public final class GitBranchParser {
             }
             String[] fields = line.split("\t", 2);
             branches.add(new BranchInfo(fields[0].trim(),
-                    fields.length > 1 && "*".equals(fields[1].trim())));
+                    fields.length > 1 && "*".equals(fields[1].trim()),
+                    fields.length > 2 && "merged".equals(fields[2].trim())));
         }
         return List.copyOf(branches);
     }

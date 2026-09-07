@@ -15,6 +15,7 @@ import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -43,7 +44,7 @@ import java.util.logging.Logger;
 
 public final class GitGuiWindowsApp extends Application {
     private static final Logger LOGGER = Logger.getLogger(GitGuiWindowsApp.class.getName());
-    private static final String APP_VERSION = "0.2.0";
+    private static final String APP_VERSION = "0.3.0";
 
     private ApplicationSettings settings;
     private GitService gitService;
@@ -60,6 +61,7 @@ public final class GitGuiWindowsApp extends Application {
     private final Button refreshButton = new Button("更新");
     private final Button stageButton = new Button("ステージ");
     private final Button unstageButton = new Button("アンステージ");
+    private final Button deleteBranchButton = new Button("削除");
     private boolean operationRunning;
 
     public static void main(String[] args) {
@@ -125,14 +127,18 @@ public final class GitGuiWindowsApp extends Application {
                 return null;
             }
         });
+        branchBox.valueProperty().addListener((observable, oldValue, newValue) ->
+                updateBranchButtons(newValue));
         Button switchBranch = new Button("切替");
         switchBranch.setOnAction(event -> switchBranch());
         Button newBranch = new Button("新規ブランチ");
         newBranch.setOnAction(event -> createBranch());
+        deleteBranchButton.setOnAction(event -> deleteBranch());
+        deleteBranchButton.setDisable(true);
         repositoryLabel.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(repositoryLabel, Priority.ALWAYS);
         HBox bar = new HBox(8, repositoryField, browse, refreshButton, repositoryLabel,
-                branchBox, switchBranch, newBranch);
+                branchBox, switchBranch, newBranch, deleteBranchButton);
         bar.setPadding(new Insets(0, 0, 10, 0));
         return bar;
     }
@@ -219,6 +225,7 @@ public final class GitGuiWindowsApp extends Application {
         changesTable.setItems(FXCollections.observableArrayList(snapshot.info().changes()));
         branchBox.setItems(FXCollections.observableArrayList(snapshot.branches()));
         snapshot.branches().stream().filter(BranchInfo::current).findFirst().ifPresent(branchBox::setValue);
+        updateBranchButtons(branchBox.getValue());
         updateSelectionButtons(changesTable.getSelectionModel().getSelectedItem());
     }
 
@@ -294,7 +301,31 @@ public final class GitGuiWindowsApp extends Application {
     private void switchBranch() {
         BranchInfo selected = branchBox.getValue();
         if (repository != null && selected != null && !selected.current()) {
+            if (repositoryInfo != null && !repositoryInfo.clean()) {
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.setTitle("ブランチ切替");
+                alert.setHeaderText("未コミットの変更があります。");
+                alert.setContentText("変更を保持したままブランチを切り替えますか？");
+                alert.getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
+                if (alert.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) {
+                    return;
+                }
+            }
             runOperation(() -> gitService.checkout(repository, selected.name()), "ブランチ切替");
+        }
+    }
+
+    private void deleteBranch() {
+        BranchInfo selected = branchBox.getValue();
+        if (repository == null || selected == null || selected.current() || !selected.merged()) {
+            return;
+        }
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("ブランチ削除");
+        alert.setHeaderText("ブランチ「" + selected.name() + "」を削除しますか？");
+        alert.setContentText("マージ済みブランチのみ安全に削除できます。");
+        if (alert.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
+            runOperation(() -> gitService.deleteBranch(repository, selected.name()), "ブランチ削除");
         }
     }
 
@@ -333,6 +364,12 @@ public final class GitGuiWindowsApp extends Application {
         refreshButton.setDisable(busy || repository == null);
         statusLabel.setText(message);
         updateSelectionButtons(changesTable.getSelectionModel().getSelectedItem());
+        updateBranchButtons(branchBox.getValue());
+    }
+
+    private void updateBranchButtons(BranchInfo branch) {
+        deleteBranchButton.setDisable(operationRunning || repository == null || branch == null
+                || branch.current() || !branch.merged());
     }
 
     private void showError(String title, String message) {
