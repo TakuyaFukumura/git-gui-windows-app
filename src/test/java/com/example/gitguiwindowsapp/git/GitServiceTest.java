@@ -17,7 +17,7 @@ class GitServiceTest {
         try {
             new GitCommandRunner().run(directory, java.util.List.of("init", "-q"));
             Path root = new GitService().validateRepository(directory);
-            assertEquals(directory.toAbsolutePath().normalize(), root);
+            assertEquals(directory.toRealPath(), root);
         } finally {
             deleteTree(directory);
         }
