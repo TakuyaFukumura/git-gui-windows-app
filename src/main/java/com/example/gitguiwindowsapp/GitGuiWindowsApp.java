@@ -1,12 +1,12 @@
-package com.example.basicwindowsapp;
+package com.example.gitguiwindowsapp;
 
-import com.example.basicwindowsapp.config.ApplicationSettings;
-import com.example.basicwindowsapp.dao.DatabaseManager;
-import com.example.basicwindowsapp.dao.MessageDao;
-import com.example.basicwindowsapp.io.BackupService;
-import com.example.basicwindowsapp.io.MessageFileService;
-import com.example.basicwindowsapp.model.Message;
-import com.example.basicwindowsapp.validation.MessageValidator;
+import com.example.gitguiwindowsapp.config.ApplicationSettings;
+import com.example.gitguiwindowsapp.dao.DatabaseManager;
+import com.example.gitguiwindowsapp.dao.MessageDao;
+import com.example.gitguiwindowsapp.io.BackupService;
+import com.example.gitguiwindowsapp.io.MessageFileService;
+import com.example.gitguiwindowsapp.model.Message;
+import com.example.gitguiwindowsapp.validation.MessageValidator;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -60,17 +60,17 @@ import java.util.logging.Logger;
  * <h3>使用方法：</h3>
  * <ul>
  *   <li>Maven: {@code mvn javafx:run}</li>
- *   <li>Java: {@code java --module-path /path/to/javafx/lib --add-modules javafx.controls com.example.basicwindowsapp.BasicWindowsApp}</li>
+ *   <li>Java: {@code java --module-path /path/to/javafx/lib --add-modules javafx.controls com.example.gitguiwindowsapp.GitGuiWindowsApp}</li>
  * </ul>
  *
- * @author basic-windows-app
- * @version 0.4.0
+ * @author git-gui-windows-app
+ * @version 0.1.0
  * @since 0.1.0
  */
-public class BasicWindowsApp extends Application {
+public class GitGuiWindowsApp extends Application {
 
-    private static final Logger LOGGER = Logger.getLogger(BasicWindowsApp.class.getName());
-    private static final String APP_VERSION = "0.16.0";
+    private static final Logger LOGGER = Logger.getLogger(GitGuiWindowsApp.class.getName());
+    private static final String APP_VERSION = "0.1.0";
     private static final DateTimeFormatter DATE_TIME_FORMATTER =
             DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss").withZone(ZoneId.systemDefault());
     private static final DateTimeFormatter DATE_FORMATTER =
@@ -78,7 +78,7 @@ public class BasicWindowsApp extends Application {
     /**
      * アプリケーション共通のスタイルシート
      */
-    private static final String STYLESHEET = BasicWindowsApp.class
+    private static final String STYLESHEET = GitGuiWindowsApp.class
             .getResource("/styles.css").toExternalForm();
     private ApplicationSettings settings;
     /**
@@ -172,7 +172,7 @@ public class BasicWindowsApp extends Application {
         scene.getStylesheets().add(STYLESHEET);
 
         // ステージ（ウィンドウ）の設定
-        primaryStage.setTitle("Basic Windows App - Message Manager");
+        primaryStage.setTitle("Git GUI Windows App - Message Manager");
         primaryStage.setScene(scene);
         primaryStage.setResizable(true);
         primaryStage.setMinWidth(600);
@@ -277,7 +277,7 @@ public class BasicWindowsApp extends Application {
         aboutLayout.setPadding(new Insets(24));
         aboutLayout.getStyleClass().add("center-section");
 
-        Label title = new Label("Basic Windows App");
+        Label title = new Label("Git GUI Windows App");
         title.getStyleClass().add("section-title");
         Label version = new Label("バージョン: " + APP_VERSION);
         Label description = new Label(
@@ -548,7 +548,7 @@ public class BasicWindowsApp extends Application {
     private void backupApplicationData() {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("アプリケーションデータをバックアップ");
-        chooser.setInitialFileName("basic-windows-app-backup.bwa");
+        chooser.setInitialFileName("git-gui-windows-app-backup.bwa");
         chooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("バックアップファイル (*.bwa)", "*.bwa"));
         java.io.File file = chooser.showSaveDialog(messageTable.getScene().getWindow());

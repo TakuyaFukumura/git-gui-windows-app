@@ -1,4 +1,4 @@
-package com.example.basicwindowsapp.config;
+package com.example.gitguiwindowsapp.config;
 
 import org.junit.jupiter.api.Test;
 

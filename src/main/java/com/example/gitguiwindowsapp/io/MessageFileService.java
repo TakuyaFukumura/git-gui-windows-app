@@ -1,7 +1,7 @@
-package com.example.basicwindowsapp.io;
+package com.example.gitguiwindowsapp.io;
 
-import com.example.basicwindowsapp.model.Message;
-import com.example.basicwindowsapp.validation.MessageValidator;
+import com.example.gitguiwindowsapp.model.Message;
+import com.example.gitguiwindowsapp.validation.MessageValidator;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

@@ -1,4 +1,4 @@
-package com.example.basicwindowsapp.validation;
+package com.example.gitguiwindowsapp.validation;
 
 /**
  * メッセージ入力を検証・正規化するユーティリティです。

@@ -1,6 +1,6 @@
-# Basic Windows App
+# Git GUI Windows App
 
-JavaFXとSQLiteを使用したメッセージ管理アプリケーションのテンプレートリポジトリです。
+JavaFXとSQLiteを使用したメッセージ管理アプリケーションです。
 
 ## 概要
 
@@ -52,11 +52,11 @@ Windowsアプリ開発における基本的なCRUD操作のベースとして使
 ### 1. リポジトリのクローン
 
 ```bash
-git clone https://github.com/TakuyaFukumura/basic-windows-app.git
+git clone https://github.com/TakuyaFukumura/git-gui-windows-app.git
 ```
 
 ```bash
-cd basic-windows-app
+cd git-gui-windows-app
 ```
 
 ### GitHub Copilot用スキル
@@ -112,7 +112,7 @@ mvn clean compile
 次に、JavaFXモジュールを指定してアプリケーションを実行します：
 
 ```bash
-java --module-path "path/to/javafx/lib" --add-modules javafx.controls -cp "target/classes:path/to/sqlite-jdbc.jar" com.example.basicwindowsapp.BasicWindowsApp
+java --module-path "path/to/javafx/lib" --add-modules javafx.controls -cp "target/classes:path/to/sqlite-jdbc.jar" com.example.gitguiwindowsapp.GitGuiWindowsApp
 ```
 
 **注意**: `path/to/javafx/lib`はJavaFX SDKのライブラリパス、
@@ -121,7 +121,7 @@ Windowsではクラスパスの区切り文字に`;`を使用し、macOS/Linux�
 例えばWindowsでは次のように実行します：
 
 ```cmd
-java --module-path "path/to/javafx/lib" --add-modules javafx.controls -cp "target/classes;path/to/sqlite-jdbc.jar" com.example.basicwindowsapp.BasicWindowsApp
+java --module-path "path/to/javafx/lib" --add-modules javafx.controls -cp "target/classes;path/to/sqlite-jdbc.jar" com.example.gitguiwindowsapp.GitGuiWindowsApp
 ```
 
 ### 方法3: JARファイルの作成
@@ -152,19 +152,19 @@ Windows向けのパッケージはWindows環境で作成してください。
 mvnw.cmd clean package -Pjpackage
 ```
 
-作成されたアプリケーションは`target\dist\BasicWindowsApp`に出力されます。
-アプリケーションイメージ内の`BasicWindowsApp.exe`から起動できます。
+作成されたアプリケーションは`target\dist\GitGuiWindowsApp`に出力されます。
+アプリケーションイメージ内の`GitGuiWindowsApp.exe`から起動できます。
 MSIインストーラーが必要な場合は、`pom.xml`の`<type>APP_IMAGE</type>`を
 `<type>MSI</type>`に変更し、WiX Toolsetをインストールしてください。
 MSIではインストール先、スタートメニュー、ショートカットなどを設定できます。
 
 インストール後のSQLiteデータベースは、実行ディレクトリではなく
-ユーザーのホームディレクトリ配下の`.basic-windows-app`に保存されます。
+ユーザーのホームディレクトリ配下の`.git-gui-windows-app`に保存されます。
 
 ## プロジェクト構造
 
 ```
-basic-windows-app/
+git-gui-windows-app/
 ├── pom.xml                                    # Mavenビルド設定
 ├── README.md                                  # このファイル
 ├── .gitignore                                 # Git無視ファイル設定
@@ -176,8 +176,8 @@ basic-windows-app/
 └── src/
     └── main/
         ├── java/
-        │   └── com/example/basicwindowsapp/
-        │       ├── BasicWindowsApp.java        # JavaFX UIとイベント処理
+        │   └── com/example/gitguiwindowsapp/
+        │       ├── GitGuiWindowsApp.java        # JavaFX UIとイベント処理
         │       ├── io/
         │       │   ├── BackupService.java       # データバックアップ／復元
         │       │   └── MessageFileService.java  # テキスト／CSV入出力
@@ -192,9 +192,9 @@ basic-windows-app/
 ```
 
 アプリケーションの起動時にユーザーのホームディレクトリ配下の
-`.basic-windows-app\basicwindowsapp.db`が作成されます。このファイルはアプリケーションの再起動後も保持されます。
+`.git-gui-windows-app\gitguiwindowsapp.db`が作成されます。このファイルはアプリケーションの再起動後も保持されます。
 テーマとウィンドウサイズ・位置は同じディレクトリの
-`.basic-windows-app\settings.properties`（Java Properties形式）に保存されます。
+`.git-gui-windows-app\settings.properties`（Java Properties形式）に保存されます。
 
 ## Maven Wrapperについて
 
@@ -226,7 +226,7 @@ mvnw.cmd javafx:run
 
 ## 主要なファイルの説明
 
-### BasicWindowsApp.java
+### GitGuiWindowsApp.java
 
 メインのアプリケーションクラスです。JavaFXの`Application`クラスを継承し、以下の機能を提供します：
 
@@ -273,7 +273,7 @@ Maven設定ファイルです。以下の設定が含まれています：
 
 ### 新機能の追加
 
-1. **新しいクラスの追加**: `src/main/java/com/example/basicwindowsapp/`ディレクトリに新しいJavaファイルを作成
+1. **新しいクラスの追加**: `src/main/java/com/example/gitguiwindowsapp/`ディレクトリに新しいJavaファイルを作成
 2. **リソースファイルの追加**: `src/main/resources/`ディレクトリにFXMLファイルや画像などを配置
 3. **依存関係の追加**: 必要に応じて`pom.xml`に新しい依存関係を追加
 

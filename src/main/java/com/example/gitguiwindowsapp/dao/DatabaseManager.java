@@ -1,4 +1,4 @@
-package com.example.basicwindowsapp.dao;
+package com.example.gitguiwindowsapp.dao;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,7 +13,7 @@ import java.util.logging.Logger;
  * <p>SQLiteデータベースへの接続とテーブルの初期化を管理します。
  * シングルトンパターンを使用してアプリケーション全体で共有されます。</p>
  *
- * @author basic-windows-app
+ * @author git-gui-windows-app
  * @version 0.2.0
  * @since 0.2.0
  */
@@ -24,13 +24,13 @@ public class DatabaseManager {
     /**
      * データベースファイル名
      */
-    private static final String DB_NAME = "basicwindowsapp.db";
+    private static final String DB_NAME = "gitguiwindowsapp.db";
 
     /**
      * ユーザーごとのアプリケーションデータディレクトリ
      */
     private static final Path DATA_DIRECTORY = Paths.get(
-            System.getProperty("user.home"), ".basic-windows-app");
+            System.getProperty("user.home"), ".git-gui-windows-app");
 
     /**
      * シングルトンインスタンス

@@ -1,4 +1,4 @@
-package com.example.basicwindowsapp.config;
+package com.example.gitguiwindowsapp.config;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -46,7 +46,7 @@ public final class ApplicationSettings {
      * @throws IOException 設定ファイルを読み込めない場合
      */
     public static ApplicationSettings load() throws IOException {
-        return load(Paths.get(System.getProperty("user.home"), ".basic-windows-app", FILE_NAME));
+        return load(Paths.get(System.getProperty("user.home"), ".git-gui-windows-app", FILE_NAME));
     }
 
     static ApplicationSettings load(Path path) throws IOException {
@@ -103,7 +103,7 @@ public final class ApplicationSettings {
             properties.setProperty(WINDOW_Y, Double.toString(windowY));
         }
         try (Writer writer = Files.newBufferedWriter(path)) {
-            properties.store(writer, "Basic Windows App settings");
+            properties.store(writer, "Git GUI Windows App settings");
         }
     }
 

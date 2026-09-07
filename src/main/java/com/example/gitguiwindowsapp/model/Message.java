@@ -1,4 +1,4 @@
-package com.example.basicwindowsapp.model;
+package com.example.gitguiwindowsapp.model;
 
 /**
  * メッセージエンティティクラス
@@ -6,7 +6,7 @@ package com.example.basicwindowsapp.model;
  * <p>アプリケーションで表示するメッセージのデータモデルです。
  * SQLiteデータベースのmessagesテーブルに対応しています。</p>
  *
- * @author basic-windows-app
+ * @author git-gui-windows-app
  * @version 0.2.0
  * @since 0.2.0
  */

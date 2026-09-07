@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.example</groupId>
-    <artifactId>basic-windows-app</artifactId>
-    <version>0.16.0</version>
+    <artifactId>git-gui-windows-app</artifactId>
+    <version>0.1.0</version>
     <packaging>jar</packaging>
 
-    <name>Basic Windows App</name>
+    <name>Git GUI Windows App</name>
     <description>基本的なJavaFXを使用したWindowsアプリケーション</description>
 
     <properties>
@@ -68,13 +68,13 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>${javafx.maven.plugin.version}</version>
                 <configuration>
-                    <mainClass>com.example.basicwindowsapp.BasicWindowsApp</mainClass>
+                    <mainClass>com.example.gitguiwindowsapp.GitGuiWindowsApp</mainClass>
                 </configuration>
                 <executions>
                     <execution>
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>com.example.basicwindowsapp.BasicWindowsApp</mainClass>
+                            <mainClass>com.example.gitguiwindowsapp.GitGuiWindowsApp</mainClass>
                         </configuration>
                     </execution>
                 </executions>
@@ -124,7 +124,7 @@
                                 <manifest>
                                     <addClasspath>true</addClasspath>
                                     <classpathPrefix>./</classpathPrefix>
-                                    <mainClass>com.example.basicwindowsapp.BasicWindowsApp</mainClass>
+                                    <mainClass>com.example.gitguiwindowsapp.GitGuiWindowsApp</mainClass>
                                 </manifest>
                             </archive>
                         </configuration>
@@ -145,9 +145,9 @@
                                 <configuration>
                                     <input>${project.build.directory}</input>
                                     <destination>${project.build.directory}/dist</destination>
-                                    <name>BasicWindowsApp</name>
+                                    <name>GitGuiWindowsApp</name>
                                     <mainJar>${project.build.finalName}.jar</mainJar>
-                                    <mainClass>com.example.basicwindowsapp.BasicWindowsApp</mainClass>
+                                    <mainClass>com.example.gitguiwindowsapp.GitGuiWindowsApp</mainClass>
                                     <appVersion>${project.version}</appVersion>
                                     <type>APP_IMAGE</type>
                                 </configuration>

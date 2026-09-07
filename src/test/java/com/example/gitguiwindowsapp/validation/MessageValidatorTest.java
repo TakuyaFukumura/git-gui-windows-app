@@ -1,4 +1,4 @@
-package com.example.basicwindowsapp.validation;
+package com.example.gitguiwindowsapp.validation;
 
 import org.junit.jupiter.api.Test;
 
