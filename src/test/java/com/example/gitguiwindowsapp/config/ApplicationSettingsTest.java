@@ -53,4 +53,28 @@ class ApplicationSettingsTest {
             Files.deleteIfExists(directory);
         }
     }
+
+    @Test
+    void savesGitExecutableAndKeepsFiveRecentRepositories() throws Exception {
+        Path directory = Files.createTempDirectory("git-settings");
+        Path file = directory.resolve("settings.properties");
+        try {
+            ApplicationSettings settings = ApplicationSettings.load(file);
+            settings.setGitExecutable("C:\\Git\\bin\\git.exe");
+            for (int i = 0; i < 6; i++) {
+                settings.addRecentRepository(directory.resolve("repo-" + i));
+            }
+            settings.save();
+
+            ApplicationSettings result = ApplicationSettings.load(file);
+
+            assertEquals("C:\\Git\\bin\\git.exe", result.getGitExecutable());
+            assertEquals(5, result.getRecentRepositories().size());
+            assertEquals(directory.resolve("repo-5").toAbsolutePath().normalize().toString(),
+                    result.getRecentRepositories().get(0));
+        } finally {
+            Files.deleteIfExists(file);
+            Files.deleteIfExists(directory);
+        }
+    }
 }
