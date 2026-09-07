@@ -64,13 +64,13 @@ import java.util.logging.Logger;
  * </ul>
  *
  * @author git-gui-windows-app
- * @version 0.16.0
+ * @version 0.1.0
  * @since 0.1.0
  */
 public class GitGuiWindowsApp extends Application {
 
     private static final Logger LOGGER = Logger.getLogger(GitGuiWindowsApp.class.getName());
-    private static final String APP_VERSION = "0.16.0";
+    private static final String APP_VERSION = "0.1.0";
     private static final DateTimeFormatter DATE_TIME_FORMATTER =
             DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss").withZone(ZoneId.systemDefault());
     private static final DateTimeFormatter DATE_FORMATTER =

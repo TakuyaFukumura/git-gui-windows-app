@@ -54,7 +54,7 @@ java --module-path "path/to/javafx/lib" --add-modules javafx.controls -cp target
 # JARを作成
 mvn clean package
 
-# JAR場所: target/git-gui-windows-app-0.16.0.jar
+# JAR場所: target/git-gui-windows-app-0.1.0.jar
 # 注意: 標準JARにはメインマニフェスト属性がありません - mvn javafx:runを使用してください
 ```
 
