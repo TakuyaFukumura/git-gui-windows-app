@@ -6,6 +6,8 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -22,6 +24,9 @@ public final class ApplicationSettings {
     private static final String WINDOW_HEIGHT = "window.height";
     private static final String WINDOW_X = "window.x";
     private static final String WINDOW_Y = "window.y";
+    private static final String GIT_EXECUTABLE = "git.executable";
+    private static final String RECENT_REPOSITORIES = "recent.repositories";
+    private static final int MAX_RECENT_REPOSITORIES = 5;
 
     private final Path path;
     private boolean darkMode;
@@ -29,6 +34,8 @@ public final class ApplicationSettings {
     private double windowHeight;
     private double windowX;
     private double windowY;
+    private String gitExecutable;
+    private final List<String> recentRepositories;
 
     private ApplicationSettings(Path path) {
         this.path = path;
@@ -37,6 +44,8 @@ public final class ApplicationSettings {
         windowHeight = 600;
         windowX = Double.NaN;
         windowY = Double.NaN;
+        gitExecutable = "git";
+        recentRepositories = new ArrayList<>();
     }
 
     /**
@@ -64,6 +73,19 @@ public final class ApplicationSettings {
         settings.windowHeight = positiveOrDefault(properties, WINDOW_HEIGHT, settings.windowHeight);
         settings.windowX = finiteOrDefault(properties, WINDOW_X, settings.windowX);
         settings.windowY = finiteOrDefault(properties, WINDOW_Y, settings.windowY);
+        settings.gitExecutable = properties.getProperty(GIT_EXECUTABLE, "git").trim();
+        if (settings.gitExecutable.isEmpty()) {
+            settings.gitExecutable = "git";
+        }
+        String recent = properties.getProperty(RECENT_REPOSITORIES, "");
+        for (String value : recent.split("\\|", -1)) {
+            if (!value.isBlank() && !settings.recentRepositories.contains(value)) {
+                settings.recentRepositories.add(value);
+            }
+            if (settings.recentRepositories.size() == MAX_RECENT_REPOSITORIES) {
+                break;
+            }
+        }
         return settings;
     }
 
@@ -102,6 +124,8 @@ public final class ApplicationSettings {
         if (Double.isFinite(windowY)) {
             properties.setProperty(WINDOW_Y, Double.toString(windowY));
         }
+        properties.setProperty(GIT_EXECUTABLE, gitExecutable);
+        properties.setProperty(RECENT_REPOSITORIES, String.join("|", recentRepositories));
         try (Writer writer = Files.newBufferedWriter(path)) {
             properties.store(writer, "Git GUI Windows App settings");
         }
@@ -154,5 +178,31 @@ public final class ApplicationSettings {
      */
     public Path getPath() {
         return path;
+    }
+
+    public String getGitExecutable() {
+        return gitExecutable;
+    }
+
+    public void setGitExecutable(String gitExecutable) {
+        if (gitExecutable != null && !gitExecutable.isBlank()) {
+            this.gitExecutable = gitExecutable.trim();
+        }
+    }
+
+    public List<String> getRecentRepositories() {
+        return List.copyOf(recentRepositories);
+    }
+
+    public void addRecentRepository(Path repository) {
+        if (repository == null) {
+            return;
+        }
+        String value = repository.toAbsolutePath().normalize().toString();
+        recentRepositories.remove(value);
+        recentRepositories.add(0, value);
+        if (recentRepositories.size() > MAX_RECENT_REPOSITORIES) {
+            recentRepositories.subList(MAX_RECENT_REPOSITORIES, recentRepositories.size()).clear();
+        }
     }
 }
