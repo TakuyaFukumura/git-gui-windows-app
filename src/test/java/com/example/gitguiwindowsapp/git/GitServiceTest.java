@@ -2,6 +2,7 @@ package com.example.gitguiwindowsapp.git;
 
 import org.junit.jupiter.api.Test;
 
+import java.nio.file.attribute.DosFileAttributeView;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -68,10 +69,10 @@ class GitServiceTest {
                 paths.sorted(java.util.Comparator.reverseOrder()).forEach(path -> {
                     for (int attempt = 0; attempt < 5; attempt++) {
                         try {
-                            try {
-                                Files.setAttribute(path, "dos:readonly", false);
-                            } catch (java.io.IOException ignored) {
-                                // The attribute is unavailable on non-Windows file systems.
+                            DosFileAttributeView attributes =
+                                    Files.getFileAttributeView(path, DosFileAttributeView.class);
+                            if (attributes != null) {
+                                attributes.setReadOnly(false);
                             }
                             Files.deleteIfExists(path);
                             return;

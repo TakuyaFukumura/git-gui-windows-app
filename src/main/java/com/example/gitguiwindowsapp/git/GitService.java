@@ -48,7 +48,12 @@ public final class GitService {
         }
         GitCommandResult result = execute(candidate, "Repository validation",
                 List.of("rev-parse", "--show-toplevel"));
-        return Path.of(result.standardOutput().trim()).toAbsolutePath().normalize();
+        try {
+            return Path.of(result.standardOutput().trim()).toRealPath();
+        } catch (IOException e) {
+            throw new GitCommandException("Repository validation",
+                    "Git returned an inaccessible repository root.", e);
+        }
     }
 
     public RepositoryInfo status(Path directory) throws GitCommandException {
