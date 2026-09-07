@@ -1,7 +1,7 @@
-package com.example.basicwindowsapp.dao;
+package com.example.gitguiwindowsapp.dao;
 
-import com.example.basicwindowsapp.model.Message;
-import com.example.basicwindowsapp.validation.MessageValidator;
+import com.example.gitguiwindowsapp.model.Message;
+import com.example.gitguiwindowsapp.validation.MessageValidator;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -15,7 +15,7 @@ import java.util.logging.Logger;
  * データベースとのやり取りを一元化し、ビジネスロジックから
  * データアクセス詳細を分離します。</p>
  *
- * @author basic-windows-app
+ * @author git-gui-windows-app
  * @version 0.2.0
  * @since 0.2.0
  */

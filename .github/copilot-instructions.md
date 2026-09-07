@@ -1,6 +1,6 @@
-# Basic Windows App - GitHub Copilot 指示書
+# Git GUI Windows App - GitHub Copilot 指示書
 
-Basic Windows App は、GUIウィンドウに「Hello World」を表示するシンプルなJavaFXデスクトップアプリケーションです。JavaベースのWindowsアプリケーション開発のテンプレートとして機能します。
+Git GUI Windows App は、JavaFXとSQLiteを使用したメッセージ管理デスクトップアプリケーションです。
 
 **常にこの指示書を最初に参照し、ここに記載された情報が不完全または誤りであることが判明した場合のみ、検索やbashコマンドにフォールバックしてください。**
 
@@ -17,7 +17,7 @@ Basic Windows App は、GUIウィンドウに「Hello World」を表示するシ
 
 ```bash
 # プロジェクトルートに移動
-cd /path/to/basic-windows-app
+cd /path/to/git-gui-windows-app
 
 # 依存関係を含むクリーンインストール - 絶対にキャンセルしないこと：約20秒かかります
 mvn clean install
@@ -46,7 +46,7 @@ mvn javafx:run
 mvn clean compile
 
 # JavaFXモジュールを指定して実行（別途JavaFX SDKのインストールが必要）
-java --module-path "path/to/javafx/lib" --add-modules javafx.controls -cp target/classes com.example.basicwindowsapp.BasicWindowsApp
+java --module-path "path/to/javafx/lib" --add-modules javafx.controls -cp target/classes com.example.gitguiwindowsapp.GitGuiWindowsApp
 ```
 
 #### 方法3: JAR実行
@@ -54,7 +54,7 @@ java --module-path "path/to/javafx/lib" --add-modules javafx.controls -cp target
 # JARを作成
 mvn clean package
 
-# JAR場所: target/basic-windows-app-0.16.0.jar
+# JAR場所: target/git-gui-windows-app-0.16.0.jar
 # 注意: 標準JARにはメインマニフェスト属性がありません - mvn javafx:runを使用してください
 ```
 
@@ -71,7 +71,7 @@ mvn clean package
 
 1. **アプリケーション実行**: `mvn javafx:run`（ディスプレイ環境が必要）
 2. **期待される動作**:
-   - タイトル「Basic Windows App - Hello World」でウィンドウが開く
+   - タイトル「Git GUI Windows App - Message Manager」でウィンドウが開く
    - ウィンドウサイズ: 初期値400x300ピクセル
    - 「Hello World」テキストが中央に表示、大きな太字フォント（24px）
    - ウィンドウはリサイズ可能、最小サイズ300x200ピクセル
@@ -92,15 +92,15 @@ Mavenフォーマットやリンタープラグインは現在設定されてい
 
 ### リポジトリルート構造
 ```
-basic-windows-app/
+git-gui-windows-app/
 ├── .github/                           # GitHub設定
 ├── docs/                              # ドキュメント
 │   └── DESIGN.md                      # UI設計仕様
 ├── src/
 │   └── main/
 │       └── java/
-│           └── com/example/basicwindowsapp/
-│               └── BasicWindowsApp.java    # メインアプリケーションクラス
+│           └── com/example/gitguiwindowsapp/
+│               └── GitGuiWindowsApp.java    # メインアプリケーションクラス
 ├── pom.xml                            # Maven設定
 ├── README.md                          # 日本語ドキュメント
 ├── test-app.sh                        # テストスクリプト（参考用のみ）
@@ -108,7 +108,7 @@ basic-windows-app/
 ```
 
 ### 主要ファイル
-- **BasicWindowsApp.java**: Applicationを継承するメインJavaFXアプリケーションクラス
+- **GitGuiWindowsApp.java**: Applicationを継承するメインJavaFXアプリケーションクラス
 - **pom.xml**: Java 24、JavaFX 26.0.2依存関係を含むMavenビルド設定
 - **README.md**: 包括的な日本語ドキュメント
 - **docs/改善点.md**: 改善候補と対応状況
@@ -120,7 +120,7 @@ basic-windows-app/
 ## 一般的な開発タスク
 
 ### 新機能の追加
-1. **新しいJavaクラス**: `src/main/java/com/example/basicwindowsapp/`に追加
+1. **新しいJavaクラス**: `src/main/java/com/example/gitguiwindowsapp/`に追加
 2. **リソース**: `src/main/resources/`に追加（必要に応じてディレクトリを作成）
 3. **依存関係**: `pom.xml`の依存関係セクションに追加
 

@@ -1,6 +1,6 @@
-package com.example.basicwindowsapp.io;
+package com.example.gitguiwindowsapp.io;
 
-import com.example.basicwindowsapp.model.Message;
+import com.example.gitguiwindowsapp.model.Message;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;

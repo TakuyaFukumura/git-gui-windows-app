@@ -1,4 +1,4 @@
-package com.example.basicwindowsapp.io;
+package com.example.gitguiwindowsapp.io;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,7 +21,7 @@ import java.util.zip.ZipOutputStream;
  */
 public final class BackupService {
 
-    private static final String DATABASE_ENTRY = "basicwindowsapp.db";
+    private static final String DATABASE_ENTRY = "gitguiwindowsapp.db";
     private static final String SETTINGS_ENTRY = "settings.properties";
     private static final long MAX_DATABASE_SIZE = 100 * 1024 * 1024;
     private static final long MAX_SETTINGS_SIZE = 1024 * 1024;
