@@ -63,6 +63,52 @@ class GitServiceTest {
         }
     }
 
+    @Test
+    void rejectsInvalidBranchNamesUsingGitRefRules() throws Exception {
+        Path directory = Files.createTempDirectory("git-service-branch-validation");
+        try {
+            GitCommandRunner runner = new GitCommandRunner();
+            runner.run(directory, List.of("init", "-q"));
+            GitService service = new GitService(runner);
+
+            assertThrows(GitCommandException.class,
+                    () -> service.createBranch(directory, "invalid..name"));
+            assertThrows(GitCommandException.class,
+                    () -> service.createBranch(directory, "-invalid"));
+        } finally {
+            deleteTree(directory);
+        }
+    }
+
+    @Test
+    void deletesOnlyMergedBranches() throws Exception {
+        Path directory = Files.createTempDirectory("git-service-delete-branch");
+        try {
+            GitCommandRunner runner = new GitCommandRunner();
+            runner.run(directory, List.of("init", "-q"));
+            runner.run(directory, List.of("config", "user.email", "test@example.com"));
+            runner.run(directory, List.of("config", "user.name", "Test User"));
+            Files.writeString(directory.resolve("file.txt"), "one\n");
+            runner.run(directory, List.of("add", "file.txt"));
+            runner.run(directory, List.of("commit", "-qm", "initial"));
+            GitService service = new GitService(runner);
+            String defaultBranch = runner.run(directory, List.of("branch", "--show-current"))
+                    .standardOutput().trim();
+            service.createBranch(directory, "merged");
+            service.createBranch(directory, "unmerged");
+            service.checkout(directory, "unmerged");
+            Files.writeString(directory.resolve("file.txt"), "two\n");
+            service.stage(directory, "file.txt");
+            service.commit(directory, "unmerged change");
+            service.checkout(directory, defaultBranch);
+            service.deleteBranch(directory, "merged");
+            assertThrows(GitCommandException.class,
+                    () -> service.deleteBranch(directory, "unmerged"));
+        } finally {
+            deleteTree(directory);
+        }
+    }
+
     private static void deleteTree(Path directory) throws Exception {
         if (Files.exists(directory)) {
             try (var paths = Files.walk(directory)) {

@@ -10,8 +10,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Git operations used by the UI. Every path supplied by a caller is passed as
@@ -112,24 +114,36 @@ public final class GitService {
 
     public List<BranchInfo> branches(Path directory) throws GitCommandException {
         Path root = validateRepository(directory);
-        GitCommandResult result = execute(root, "List branches",
+        GitCommandResult allBranches = execute(root, "List branches",
                 List.of("branch", "--format=%(refname:short)%09%(HEAD)"));
-        return branchParser.parse(result.standardOutput());
+        GitCommandResult mergedBranches = execute(root, "List merged branches",
+                List.of("branch", "--merged", "--format=%(refname:short)"));
+        Set<String> merged = new HashSet<>(mergedBranches.standardOutput().lines()
+                .map(String::trim)
+                .filter(line -> !line.isBlank())
+                .toList());
+        return branchParser.parse(allBranches.standardOutput()).stream()
+                .map(branch -> new BranchInfo(branch.name(), branch.current(),
+                        merged.contains(branch.name())))
+                .toList();
     }
 
     public GitOperationResult createBranch(Path directory, String name) throws GitCommandException {
-        validateBranchName(name);
-        return operation(directory, "Create branch", List.of("branch", name.trim()));
+        Path root = validateRepository(directory);
+        validateBranchName(root, name);
+        return operation(root, "Create branch", List.of("branch", name.trim()));
     }
 
     public GitOperationResult checkout(Path directory, String name) throws GitCommandException {
-        validateBranchName(name);
-        return operation(directory, "Switch branch", List.of("switch", name.trim()));
+        Path root = validateRepository(directory);
+        validateBranchName(root, name);
+        return operation(root, "Switch branch", List.of("switch", name.trim()));
     }
 
     public GitOperationResult deleteBranch(Path directory, String name) throws GitCommandException {
-        validateBranchName(name);
-        return operation(directory, "Delete branch", List.of("branch", "-d", name.trim()));
+        Path root = validateRepository(directory);
+        validateBranchName(root, name);
+        return operation(root, "Delete branch", List.of("branch", "-d", name.trim()));
     }
 
     private GitOperationResult operation(Path directory, String operation, List<String> arguments)
@@ -168,13 +182,16 @@ public final class GitService {
         return path;
     }
 
-    private static void validateBranchName(String name) throws GitCommandException {
-        if (name == null || name.isBlank() || name.startsWith("-")
-                || name.contains("..") || name.contains(" ") || name.contains("~")
-                || name.contains("^") || name.contains(":") || name.contains("\\")
-                || name.endsWith(".") || name.endsWith("/")) {
+    private void validateBranchName(Path repository, String name) throws GitCommandException {
+        if (name == null || name.isBlank()) {
             throw new GitCommandException("Branch validation", -1,
                     "Invalid branch name: " + name);
+        }
+        GitCommandResult result = runnerCall(repository,
+                List.of("check-ref-format", "--branch", name.trim()));
+        if (!result.succeeded()) {
+            throw new GitCommandException("Branch validation", result.exitCode(),
+                    result.standardError());
         }
     }
 }
