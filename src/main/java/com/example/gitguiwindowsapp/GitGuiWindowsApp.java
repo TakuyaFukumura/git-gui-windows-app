@@ -6,6 +6,8 @@ import com.example.gitguiwindowsapp.git.GitCommandRunner;
 import com.example.gitguiwindowsapp.git.GitService;
 import com.example.gitguiwindowsapp.model.BranchInfo;
 import com.example.gitguiwindowsapp.model.DiffDocument;
+import com.example.gitguiwindowsapp.model.DiffLine;
+import com.example.gitguiwindowsapp.model.DiffLineType;
 import com.example.gitguiwindowsapp.model.FileChange;
 import com.example.gitguiwindowsapp.model.GitOperationResult;
 import com.example.gitguiwindowsapp.model.RepositoryInfo;
@@ -19,9 +21,10 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.Tooltip;
@@ -36,6 +39,7 @@ import javafx.util.StringConverter;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -52,7 +56,7 @@ public final class GitGuiWindowsApp extends Application {
     private Path repository;
     private RepositoryInfo repositoryInfo;
     private final TableView<FileChange> changesTable = new TableView<>();
-    private final TextArea diffArea = new TextArea();
+    private final ListView<DiffLine> diffView = new ListView<>();
     private final TextField repositoryField = new TextField();
     private final TextField commitMessage = new TextField();
     private final ComboBox<BranchInfo> branchBox = new ComboBox<>();
@@ -147,10 +151,22 @@ public final class GitGuiWindowsApp extends Application {
         changesTable.setPlaceholder(new Label("変更ファイルはありません"));
         changesTable.getSelectionModel().selectedItemProperty()
                 .addListener((observable, oldValue, newValue) -> showDiff(newValue));
-        diffArea.setEditable(false);
-        diffArea.setWrapText(false);
-        diffArea.setStyle("-fx-font-family: monospace;");
-        SplitPane split = new SplitPane(changesTable, diffArea);
+        diffView.getStyleClass().add("diff-view");
+        diffView.setCellFactory(view -> new ListCell<>() {
+            @Override
+            protected void updateItem(DiffLine line, boolean empty) {
+                super.updateItem(line, empty);
+                getStyleClass().removeAll("diff-addition", "diff-deletion", "diff-header",
+                        "diff-hunk", "diff-meta", "diff-context");
+                if (empty || line == null) {
+                    setText(null);
+                    return;
+                }
+                setText(line.text());
+                getStyleClass().add(styleClassFor(line.type()));
+            }
+        });
+        SplitPane split = new SplitPane(changesTable, diffView);
         split.setDividerPositions(0.38);
         return split;
     }
@@ -232,25 +248,55 @@ public final class GitGuiWindowsApp extends Application {
     private void showDiff(FileChange change) {
         updateSelectionButtons(change);
         if (change == null || repository == null) {
-            diffArea.clear();
+            diffView.getItems().clear();
             return;
         }
         boolean cached = change.isStaged() && !change.isUnstaged();
         setBusy(true, "差分を読み込み中...");
         runAsync(() -> gitService.diff(repository, change.path(), cached), diff -> {
-            diffArea.setText(formatDiff(diff));
+            diffView.setItems(FXCollections.observableArrayList(formatDiff(diff)));
             setBusy(false, "準備完了");
         }, "差分の取得");
     }
 
-    private String formatDiff(DiffDocument diff) {
+    private List<DiffLine> formatDiff(DiffDocument diff) {
         if (diff.tooLarge()) {
-            return "差分が10 MBを超えるため表示できません。";
+            return List.of(new DiffLine(DiffLineType.META,
+                    "差分が10 MBを超えるため表示できません。"));
         }
         if (diff.binary()) {
-            return "バイナリファイルのため内容を表示できません。\n\n" + diff.rawText();
+            List<DiffLine> lines = new ArrayList<>();
+            lines.add(new DiffLine(DiffLineType.META, "バイナリファイルのため内容を表示できません。"));
+            lines.add(new DiffLine(DiffLineType.META, ""));
+            lines.addAll(linesFor(diff.rawText()));
+            return lines;
         }
-        return diff.rawText().isBlank() ? "差分はありません。" : diff.rawText();
+        if (!diff.rawText().isBlank()) {
+            List<DiffLine> lines = diff.files().stream()
+                    .flatMap(file -> file.lines().stream())
+                    .toList();
+            return lines.isEmpty() ? linesFor(diff.rawText()) : lines;
+        }
+        return List.of(new DiffLine(DiffLineType.META, "差分はありません。"));
+    }
+
+    private static List<DiffLine> linesFor(String text) {
+        List<DiffLine> lines = new ArrayList<>();
+        for (String line : text.split("\\R", -1)) {
+            lines.add(new DiffLine(DiffLineType.META, line));
+        }
+        return lines;
+    }
+
+    private static String styleClassFor(DiffLineType type) {
+        return switch (type) {
+            case ADDITION -> "diff-addition";
+            case DELETION -> "diff-deletion";
+            case HEADER -> "diff-header";
+            case HUNK -> "diff-hunk";
+            case META -> "diff-meta";
+            case CONTEXT -> "diff-context";
+        };
     }
 
     private void updateSelectionButtons(FileChange change) {
