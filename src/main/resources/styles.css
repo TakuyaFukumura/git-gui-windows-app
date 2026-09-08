@@ -5,3 +5,42 @@
 .text-area {
     -fx-font-family: "Consolas", monospace;
 }
+
+.diff-view {
+    -fx-font-family: "Consolas", monospace;
+    -fx-font-size: 12px;
+}
+
+.diff-view .list-cell {
+    -fx-padding: 2px 6px;
+    -fx-background-color: transparent;
+}
+
+.diff-view .list-cell.diff-addition {
+    -fx-background-color: #e6ffed;
+    -fx-text-fill: #1a7f37;
+}
+
+.diff-view .list-cell.diff-deletion {
+    -fx-background-color: #ffebe9;
+    -fx-text-fill: #cf222e;
+}
+
+.diff-view .list-cell.diff-header {
+    -fx-background-color: #f1f8ff;
+    -fx-text-fill: #0969da;
+}
+
+.diff-view .list-cell.diff-hunk {
+    -fx-background-color: #fbefff;
+    -fx-text-fill: #8250df;
+}
+
+.diff-view .list-cell.diff-meta {
+    -fx-background-color: #f6f8fa;
+    -fx-text-fill: #57606a;
+}
+
+.diff-view .list-cell.diff-context {
+    -fx-text-fill: #24292f;
+}
