@@ -149,6 +149,21 @@
     -fx-font-size: 12px;
 }
 
+.history-view {
+    -fx-font-family: "Consolas", monospace;
+    -fx-font-size: 13px;
+}
+
+.history-view .list-cell {
+    -fx-padding: 4px 8px;
+    -fx-background-color: transparent;
+    -fx-text-fill: #24292f;
+}
+
+.history-view .list-cell:filled:hover {
+    -fx-background-color: #f3f4f6;
+}
+
 .diff-view .list-cell {
     -fx-padding: 2px 6px;
     -fx-background-color: transparent;
@@ -185,6 +200,18 @@
 
 .dark .diff-view {
     -fx-background-color: #161b22;
+}
+
+.dark .history-view {
+    -fx-background-color: #161b22;
+}
+
+.dark .history-view .list-cell {
+    -fx-text-fill: #e6edf3;
+}
+
+.dark .history-view .list-cell:filled:hover {
+    -fx-background-color: #21262d;
 }
 
 .dark .diff-view .list-cell.diff-addition {

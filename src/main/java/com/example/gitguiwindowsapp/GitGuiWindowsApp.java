@@ -30,6 +30,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.SplitPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -60,12 +62,14 @@ public final class GitGuiWindowsApp extends Application {
     private RepositoryInfo repositoryInfo;
     private final TableView<FileChange> changesTable = new TableView<>();
     private final ListView<DiffLine> diffView = new ListView<>();
+    private final ListView<String> historyView = new ListView<>();
     private final TextField repositoryField = new TextField();
     private final TextField commitMessage = new TextField();
     private final ComboBox<BranchInfo> branchBox = new ComboBox<>();
     private final Label statusLabel = new Label("リポジトリを選択してください");
     private final Label repositoryLabel = new Label("未選択");
     private final Button refreshButton = new Button("更新");
+    private final Button historyRefreshButton = new Button("履歴を更新");
     private final Button stageButton = new Button("ステージ");
     private final Button unstageButton = new Button("アンステージ");
     private final Button deleteBranchButton = new Button("削除");
@@ -179,7 +183,25 @@ public final class GitGuiWindowsApp extends Application {
         });
         SplitPane split = new SplitPane(changesTable, diffView);
         split.setDividerPositions(0.38);
-        return split;
+        Tab changesTab = new Tab("変更", split);
+        changesTab.setClosable(false);
+
+        historyView.getStyleClass().add("history-view");
+        historyView.setPlaceholder(new Label("コミット履歴はありません"));
+        historyView.setCellFactory(view -> new ListCell<>() {
+            @Override
+            protected void updateItem(String line, boolean empty) {
+                super.updateItem(line, empty);
+                setText(empty ? null : line);
+            }
+        });
+        historyRefreshButton.setDisable(true);
+        historyRefreshButton.setOnAction(event -> refreshHistory());
+        Tab historyTab = new Tab("履歴", historyView);
+        historyTab.setClosable(false);
+        TabPane tabs = new TabPane(changesTab, historyTab);
+        tabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
+        return new SplitPane(tabs);
     }
 
     private void configureTable() {
@@ -205,7 +227,8 @@ public final class GitGuiWindowsApp extends Application {
         HBox.setHgrow(commitMessage, Priority.ALWAYS);
         Button commit = new Button("コミット");
         commit.setOnAction(event -> commit());
-        HBox bar = new HBox(8, stageButton, unstageButton, commitMessage, commit, statusLabel);
+        HBox bar = new HBox(8, stageButton, unstageButton, commitMessage, commit,
+                historyRefreshButton, statusLabel);
         bar.setPadding(new Insets(10, 0, 0, 0));
         HBox.setHgrow(statusLabel, Priority.NEVER);
         return bar;
@@ -254,6 +277,7 @@ public final class GitGuiWindowsApp extends Application {
             repositoryField.setText(repository.toString());
             settings.addRecentRepository(repository);
             updateView(snapshot);
+            refreshHistory();
             setBusy(false, "準備完了");
             saveSettings();
         }, "リポジトリを開く");
@@ -273,6 +297,18 @@ public final class GitGuiWindowsApp extends Application {
         snapshot.branches().stream().filter(BranchInfo::current).findFirst().ifPresent(branchBox::setValue);
         updateBranchButtons(branchBox.getValue());
         updateSelectionButtons(changesTable.getSelectionModel().getSelectedItem());
+    }
+
+    private void refreshHistory() {
+        if (repository == null) {
+            historyView.getItems().clear();
+            return;
+        }
+        historyRefreshButton.setDisable(true);
+        runAsync(() -> gitService.commitGraph(repository), graph -> {
+            historyView.setItems(FXCollections.observableArrayList(graph));
+            historyRefreshButton.setDisable(false);
+        }, "コミット履歴の取得");
     }
 
     private void showDiff(FileChange change) {
@@ -441,6 +477,7 @@ public final class GitGuiWindowsApp extends Application {
     private void setBusy(boolean busy, String message) {
         operationRunning = busy;
         refreshButton.setDisable(busy || repository == null);
+        historyRefreshButton.setDisable(busy || repository == null);
         statusLabel.setText(message);
         updateSelectionButtons(changesTable.getSelectionModel().getSelectedItem());
         updateBranchButtons(branchBox.getValue());

@@ -142,6 +142,28 @@ class GitServiceTest {
         }
     }
 
+    @Test
+    void listsCommitGraphAcrossBranches() throws Exception {
+        Path directory = Files.createTempDirectory("git-service-commit-graph");
+        try {
+            GitCommandRunner runner = new GitCommandRunner();
+            runner.run(directory, List.of("init", "-q"));
+            runner.run(directory, List.of("config", "user.email", "test@example.com"));
+            runner.run(directory, List.of("config", "user.name", "Test User"));
+            Files.writeString(directory.resolve("file.txt"), "one\n");
+            runner.run(directory, List.of("add", "file.txt"));
+            runner.run(directory, List.of("commit", "-qm", "initial"));
+
+            List<String> graph = new GitService(runner).commitGraph(directory);
+
+            assertEquals(1, graph.size());
+            assertTrue(graph.get(0).contains("initial"));
+            assertTrue(graph.get(0).startsWith("*"));
+        } finally {
+            deleteTree(directory);
+        }
+    }
+
     private static void deleteTree(Path directory) throws Exception {
         if (Files.exists(directory)) {
             try (var paths = Files.walk(directory)) {
