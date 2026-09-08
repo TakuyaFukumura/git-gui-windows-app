@@ -128,6 +128,14 @@ public final class GitService {
                 .toList();
     }
 
+    public List<String> commitGraph(Path directory) throws GitCommandException {
+        Path root = validateRepository(directory);
+        GitCommandResult result = execute(root, "Read commit history",
+                List.of("log", "--graph", "--all", "--decorate", "--date=short",
+                        "--pretty=format:%h%x09%ad%x09%an%x09%s"));
+        return result.standardOutput().lines().toList();
+    }
+
     public GitOperationResult createBranch(Path directory, String name) throws GitCommandException {
         Path root = validateRepository(directory);
         validateBranchName(root, name);

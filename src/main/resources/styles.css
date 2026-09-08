@@ -122,6 +122,37 @@
     -fx-text-fill: #ffffff;
 }
 
+.dark .tab-pane,
+.dark .tab-content-area {
+    -fx-background-color: #161b22;
+}
+
+.dark .tab-pane .tab-header-area,
+.dark .tab-pane .tab-header-background {
+    -fx-background-color: #0d1117;
+}
+
+.dark .tab-pane .tab {
+    -fx-background-color: #21262d;
+    -fx-border-color: #30363d;
+}
+
+.dark .tab-pane .tab .tab-label {
+    -fx-text-fill: #8b949e;
+}
+
+.dark .tab-pane .tab:selected {
+    -fx-background-color: #161b22;
+}
+
+.dark .tab-pane .tab:selected .tab-label {
+    -fx-text-fill: #e6edf3;
+}
+
+.dark .split-pane-divider {
+    -fx-background-color: #30363d;
+}
+
 .dark .placeholder .label {
     -fx-text-fill: #8b949e;
 }
@@ -147,6 +178,21 @@
 .diff-view {
     -fx-font-family: "Consolas", monospace;
     -fx-font-size: 12px;
+}
+
+.history-view {
+    -fx-font-family: "Consolas", monospace;
+    -fx-font-size: 13px;
+}
+
+.history-view .list-cell {
+    -fx-padding: 4px 8px;
+    -fx-background-color: transparent;
+    -fx-text-fill: #24292f;
+}
+
+.history-view .list-cell:filled:hover {
+    -fx-background-color: #f3f4f6;
 }
 
 .diff-view .list-cell {
@@ -185,6 +231,18 @@
 
 .dark .diff-view {
     -fx-background-color: #161b22;
+}
+
+.dark .history-view {
+    -fx-background-color: #161b22;
+}
+
+.dark .history-view .list-cell {
+    -fx-text-fill: #e6edf3;
+}
+
+.dark .history-view .list-cell:filled:hover {
+    -fx-background-color: #21262d;
 }
 
 .dark .diff-view .list-cell.diff-addition {
