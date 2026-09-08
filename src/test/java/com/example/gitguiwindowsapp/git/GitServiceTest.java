@@ -9,6 +9,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GitServiceTest {
     @Test
@@ -104,6 +105,38 @@ class GitServiceTest {
             service.deleteBranch(directory, "merged");
             assertThrows(GitCommandException.class,
                     () -> service.deleteBranch(directory, "unmerged"));
+        } finally {
+            deleteTree(directory);
+        }
+    }
+
+    @Test
+    void listsBranchesAndMarksMergedBranches() throws Exception {
+        Path directory = Files.createTempDirectory("git-service-list-branches");
+        try {
+            GitCommandRunner runner = new GitCommandRunner();
+            runner.run(directory, List.of("init", "-q"));
+            runner.run(directory, List.of("config", "user.email", "test@example.com"));
+            runner.run(directory, List.of("config", "user.name", "Test User"));
+            Files.writeString(directory.resolve("file.txt"), "one\n");
+            runner.run(directory, List.of("add", "file.txt"));
+            runner.run(directory, List.of("commit", "-qm", "initial"));
+
+            GitService service = new GitService(runner);
+            String defaultBranch = runner.run(directory, List.of("branch", "--show-current"))
+                    .standardOutput().trim();
+            service.createBranch(directory, "feature");
+
+            List<com.example.gitguiwindowsapp.model.BranchInfo> branches =
+                    service.branches(directory);
+
+            assertEquals(2, branches.size());
+            List<String> branchNames = branches.stream()
+                    .map(com.example.gitguiwindowsapp.model.BranchInfo::name).toList();
+            assertTrue(branchNames.contains(defaultBranch));
+            assertTrue(branchNames.contains("feature"));
+            assertEquals(2, branches.stream().filter(com.example.gitguiwindowsapp.model.BranchInfo::merged)
+                    .count());
         } finally {
             deleteTree(directory);
         }

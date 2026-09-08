@@ -117,7 +117,7 @@ public final class GitService {
         GitCommandResult allBranches = execute(root, "List branches",
                 List.of("branch", "--format=%(refname:short)%09%(HEAD)"));
         GitCommandResult mergedBranches = execute(root, "List merged branches",
-                List.of("branch", "--merged", "--format=%(refname:short)"));
+                List.of("branch", "--format=%(refname:short)", "--merged"));
         Set<String> merged = new HashSet<>(mergedBranches.standardOutput().lines()
                 .map(String::trim)
                 .filter(line -> !line.isBlank())
