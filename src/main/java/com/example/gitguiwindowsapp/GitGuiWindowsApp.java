@@ -38,6 +38,7 @@ import javafx.stage.Stage;
 import javafx.util.StringConverter;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -116,6 +117,9 @@ public final class GitGuiWindowsApp extends Application {
         HBox.setHgrow(repositoryField, Priority.ALWAYS);
         Button browse = new Button("開く...");
         browse.setOnAction(event -> chooseRepository());
+        Button setOpenBaseDirectory = new Button("基準フォルダー...");
+        setOpenBaseDirectory.setTooltip(new Tooltip("「開く...」の初期フォルダーを設定"));
+        setOpenBaseDirectory.setOnAction(event -> chooseOpenBaseDirectory());
         refreshButton.setDisable(true);
         refreshButton.setOnAction(event -> refreshRepository());
 
@@ -141,7 +145,7 @@ public final class GitGuiWindowsApp extends Application {
         deleteBranchButton.setDisable(true);
         repositoryLabel.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(repositoryLabel, Priority.ALWAYS);
-        HBox bar = new HBox(8, repositoryField, browse, refreshButton, repositoryLabel,
+        HBox bar = new HBox(8, repositoryField, browse, setOpenBaseDirectory, refreshButton, repositoryLabel,
                 branchBox, switchBranch, newBranch, deleteBranchButton);
         bar.setPadding(new Insets(0, 0, 10, 0));
         return bar;
@@ -203,9 +207,28 @@ public final class GitGuiWindowsApp extends Application {
     private void chooseRepository() {
         DirectoryChooser chooser = new DirectoryChooser();
         chooser.setTitle("Gitリポジトリを選択");
+        Path baseDirectory = settings.getOpenBaseDirectory();
+        if (baseDirectory != null && Files.isDirectory(baseDirectory)) {
+            chooser.setInitialDirectory(baseDirectory.toFile());
+        }
         java.io.File selected = chooser.showDialog(stage);
         if (selected != null) {
             openRepository(selected.toPath());
+        }
+    }
+
+    private void chooseOpenBaseDirectory() {
+        DirectoryChooser chooser = new DirectoryChooser();
+        chooser.setTitle("「開く...」の基準フォルダーを選択");
+        Path baseDirectory = settings.getOpenBaseDirectory();
+        if (baseDirectory != null && Files.isDirectory(baseDirectory)) {
+            chooser.setInitialDirectory(baseDirectory.toFile());
+        }
+        java.io.File selected = chooser.showDialog(stage);
+        if (selected != null) {
+            settings.setOpenBaseDirectory(selected.toPath());
+            saveSettings();
+            statusLabel.setText("開く...の基準フォルダーを設定しました");
         }
     }
 

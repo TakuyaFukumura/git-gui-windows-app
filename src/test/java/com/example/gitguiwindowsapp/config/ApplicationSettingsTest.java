@@ -21,6 +21,7 @@ class ApplicationSettingsTest {
             source.setWindowHeight(768);
             source.setWindowX(120);
             source.setWindowY(80);
+            source.setOpenBaseDirectory(directory.resolve("repositories"));
             source.save();
 
             ApplicationSettings result = ApplicationSettings.load(file);
@@ -30,6 +31,24 @@ class ApplicationSettingsTest {
             assertEquals(768, result.getWindowHeight());
             assertEquals(120, result.getWindowX());
             assertEquals(80, result.getWindowY());
+            assertEquals(directory.resolve("repositories").toAbsolutePath().normalize(),
+                    result.getOpenBaseDirectory());
+        } finally {
+            Files.deleteIfExists(file);
+            Files.deleteIfExists(directory);
+        }
+    }
+
+    @Test
+    void invalidOpenBaseDirectoryUsesDefault() throws Exception {
+        Path directory = Files.createTempDirectory("invalid-open-base-settings");
+        Path file = directory.resolve("settings.properties");
+        try {
+            Files.writeString(file, "open.baseDirectory=bad\0path\n");
+
+            ApplicationSettings result = ApplicationSettings.load(file);
+
+            assertEquals(null, result.getOpenBaseDirectory());
         } finally {
             Files.deleteIfExists(file);
             Files.deleteIfExists(directory);

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ public final class ApplicationSettings {
     private static final String WINDOW_X = "window.x";
     private static final String WINDOW_Y = "window.y";
     private static final String GIT_EXECUTABLE = "git.executable";
+    private static final String OPEN_BASE_DIRECTORY = "open.baseDirectory";
     private static final String RECENT_REPOSITORIES = "recent.repositories";
     private static final int MAX_RECENT_REPOSITORIES = 5;
 
@@ -35,6 +37,7 @@ public final class ApplicationSettings {
     private double windowX;
     private double windowY;
     private String gitExecutable;
+    private Path openBaseDirectory;
     private final List<String> recentRepositories;
 
     private ApplicationSettings(Path path) {
@@ -45,6 +48,7 @@ public final class ApplicationSettings {
         windowX = Double.NaN;
         windowY = Double.NaN;
         gitExecutable = "git";
+        openBaseDirectory = null;
         recentRepositories = new ArrayList<>();
     }
 
@@ -76,6 +80,14 @@ public final class ApplicationSettings {
         settings.gitExecutable = properties.getProperty(GIT_EXECUTABLE, "git").trim();
         if (settings.gitExecutable.isEmpty()) {
             settings.gitExecutable = "git";
+        }
+        String openBaseDirectory = properties.getProperty(OPEN_BASE_DIRECTORY, "").trim();
+        if (!openBaseDirectory.isEmpty()) {
+            try {
+                settings.openBaseDirectory = Path.of(openBaseDirectory).toAbsolutePath().normalize();
+            } catch (InvalidPathException e) {
+                settings.openBaseDirectory = null;
+            }
         }
         String recent = properties.getProperty(RECENT_REPOSITORIES, "");
         for (String value : recent.split("\\|", -1)) {
@@ -125,6 +137,9 @@ public final class ApplicationSettings {
             properties.setProperty(WINDOW_Y, Double.toString(windowY));
         }
         properties.setProperty(GIT_EXECUTABLE, gitExecutable);
+        if (openBaseDirectory != null) {
+            properties.setProperty(OPEN_BASE_DIRECTORY, openBaseDirectory.toString());
+        }
         properties.setProperty(RECENT_REPOSITORIES, String.join("|", recentRepositories));
         try (Writer writer = Files.newBufferedWriter(path)) {
             properties.store(writer, "Git GUI Windows App settings");
@@ -188,6 +203,16 @@ public final class ApplicationSettings {
         if (gitExecutable != null && !gitExecutable.isBlank()) {
             this.gitExecutable = gitExecutable.trim();
         }
+    }
+
+    public Path getOpenBaseDirectory() {
+        return openBaseDirectory;
+    }
+
+    public void setOpenBaseDirectory(Path openBaseDirectory) {
+        this.openBaseDirectory = openBaseDirectory == null
+                ? null
+                : openBaseDirectory.toAbsolutePath().normalize();
     }
 
     public List<String> getRecentRepositories() {
