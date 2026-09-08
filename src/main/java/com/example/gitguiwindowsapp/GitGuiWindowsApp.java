@@ -20,6 +20,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -54,6 +55,7 @@ public final class GitGuiWindowsApp extends Application {
     private ApplicationSettings settings;
     private GitService gitService;
     private Stage stage;
+    private BorderPane root;
     private Path repository;
     private RepositoryInfo repositoryInfo;
     private final TableView<FileChange> changesTable = new TableView<>();
@@ -67,6 +69,7 @@ public final class GitGuiWindowsApp extends Application {
     private final Button stageButton = new Button("ステージ");
     private final Button unstageButton = new Button("アンステージ");
     private final Button deleteBranchButton = new Button("削除");
+    private final Button themeButton = new Button();
     private boolean operationRunning;
 
     public static void main(String[] args) {
@@ -79,10 +82,11 @@ public final class GitGuiWindowsApp extends Application {
         settings = ApplicationSettings.load();
         gitService = new GitService(new GitCommandRunner(settings.getGitExecutable()));
 
-        BorderPane root = createLayout();
+        root = createLayout();
         Scene scene = new Scene(root, settings.getWindowWidth(), settings.getWindowHeight());
         String stylesheet = GitGuiWindowsApp.class.getResource("/styles.css").toExternalForm();
         scene.getStylesheets().add(stylesheet);
+        applyTheme(settings.isDarkMode());
         primaryStage.setTitle("Git GUI Windows App");
         primaryStage.setScene(scene);
         primaryStage.setMinWidth(760);
@@ -143,10 +147,13 @@ public final class GitGuiWindowsApp extends Application {
         newBranch.setOnAction(event -> createBranch());
         deleteBranchButton.setOnAction(event -> deleteBranch());
         deleteBranchButton.setDisable(true);
+        themeButton.getStyleClass().add("theme-toggle");
+        themeButton.setOnAction(event -> toggleTheme());
+        themeButton.setTooltip(new Tooltip("ライトモードとダークモードを切り替え"));
         repositoryLabel.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(repositoryLabel, Priority.ALWAYS);
         HBox bar = new HBox(8, repositoryField, browse, setOpenBaseDirectory, refreshButton, repositoryLabel,
-                branchBox, switchBranch, newBranch, deleteBranchButton);
+                branchBox, switchBranch, newBranch, deleteBranchButton, themeButton);
         bar.setPadding(new Insets(0, 0, 10, 0));
         return bar;
     }
@@ -361,6 +368,7 @@ public final class GitGuiWindowsApp extends Application {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("新規ブランチ");
         dialog.setHeaderText("作成するブランチ名");
+        styleDialog(dialog);
         Optional<String> name = dialog.showAndWait();
         if (name.isPresent() && !name.get().isBlank()) {
             runOperation(() -> gitService.createBranch(repository, name.get()), "ブランチ作成");
@@ -376,6 +384,7 @@ public final class GitGuiWindowsApp extends Application {
                 alert.setHeaderText("未コミットの変更があります。");
                 alert.setContentText("変更を保持したままブランチを切り替えますか？");
                 alert.getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
+                styleDialog(alert);
                 if (alert.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) {
                     return;
                 }
@@ -393,6 +402,7 @@ public final class GitGuiWindowsApp extends Application {
         alert.setTitle("ブランチ削除");
         alert.setHeaderText("ブランチ「" + selected.name() + "」を削除しますか？");
         alert.setContentText("マージ済みブランチのみ安全に削除できます。");
+        styleDialog(alert);
         if (alert.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
             runOperation(() -> gitService.deleteBranch(repository, selected.name()), "ブランチ削除");
         }
@@ -446,7 +456,36 @@ public final class GitGuiWindowsApp extends Application {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message == null || message.isBlank() ? "操作に失敗しました。" : message);
+        styleDialog(alert);
         alert.showAndWait();
+    }
+
+    private void styleDialog(Dialog<?> dialog) {
+        if (!settings.isDarkMode()) {
+            return;
+        }
+        String stylesheet = GitGuiWindowsApp.class.getResource("/styles.css").toExternalForm();
+        dialog.getDialogPane().getStylesheets().add(stylesheet);
+        dialog.getDialogPane().getStyleClass().add("dark");
+    }
+
+    private void toggleTheme() {
+        boolean darkMode = !settings.isDarkMode();
+        settings.setDarkMode(darkMode);
+        applyTheme(darkMode);
+        saveSettings();
+    }
+
+    private void applyTheme(boolean darkMode) {
+        if (root == null) {
+            return;
+        }
+        root.getStyleClass().remove("dark");
+        if (darkMode) {
+            root.getStyleClass().add("dark");
+        }
+        themeButton.setText(darkMode ? "☾" : "☀");
+        themeButton.setAccessibleText(darkMode ? "ライトモードに切り替え" : "ダークモードに切り替え");
     }
 
     private void saveSettings() {
