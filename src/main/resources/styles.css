@@ -34,6 +34,13 @@
     -fx-background-color: #f3f4f6;
 }
 
+.theme-toggle {
+    -fx-font-size: 18px;
+    -fx-padding: 2px 9px;
+    -fx-min-width: 38px;
+    -fx-min-height: 32px;
+}
+
 .table-view,
 .list-view,
 .split-pane {

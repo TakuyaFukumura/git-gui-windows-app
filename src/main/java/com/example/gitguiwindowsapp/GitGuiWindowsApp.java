@@ -147,6 +147,7 @@ public final class GitGuiWindowsApp extends Application {
         newBranch.setOnAction(event -> createBranch());
         deleteBranchButton.setOnAction(event -> deleteBranch());
         deleteBranchButton.setDisable(true);
+        themeButton.getStyleClass().add("theme-toggle");
         themeButton.setOnAction(event -> toggleTheme());
         themeButton.setTooltip(new Tooltip("ライトモードとダークモードを切り替え"));
         repositoryLabel.setMaxWidth(Double.MAX_VALUE);
@@ -483,7 +484,7 @@ public final class GitGuiWindowsApp extends Application {
         if (darkMode) {
             root.getStyleClass().add("dark");
         }
-        themeButton.setText(darkMode ? "ライト" : "ダーク");
+        themeButton.setText(darkMode ? "☾" : "☀");
         themeButton.setAccessibleText(darkMode ? "ライトモードに切り替え" : "ダークモードに切り替え");
     }
 
