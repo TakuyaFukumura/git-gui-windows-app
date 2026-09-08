@@ -132,7 +132,7 @@ public final class GitService {
         Path root = validateRepository(directory);
         GitCommandResult result = execute(root, "Read commit history",
                 List.of("log", "--graph", "--all", "--decorate", "--date=short",
-                        "--pretty=format:%h%x09%ad%x09%an%x09%s"));
+                        "--pretty=format:%h%x09%D%x09%ad%x09%an%x09%s"));
         return result.standardOutput().lines().toList();
     }
 

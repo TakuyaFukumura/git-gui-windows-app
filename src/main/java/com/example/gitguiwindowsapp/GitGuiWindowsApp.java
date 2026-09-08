@@ -32,6 +32,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -192,7 +193,8 @@ public final class GitGuiWindowsApp extends Application {
             @Override
             protected void updateItem(String line, boolean empty) {
                 super.updateItem(line, empty);
-                setText(empty ? null : line);
+                setText(null);
+                setGraphic(empty || line == null ? null : historyCell(line));
             }
         });
         historyRefreshButton.setDisable(true);
@@ -202,6 +204,32 @@ public final class GitGuiWindowsApp extends Application {
         TabPane tabs = new TabPane(changesTab, historyTab);
         tabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
         return new SplitPane(tabs);
+    }
+
+    private HBox historyCell(String line) {
+        String[] fields = line.split("\\t", 5);
+        String graphAndHash = fields[0];
+        int hashStart = graphAndHash.lastIndexOf(' ') + 1;
+        String graphText = hashStart > 0 ? graphAndHash.substring(0, hashStart) : "";
+        String hash = hashStart > 0 ? graphAndHash.substring(hashStart) : graphAndHash;
+        String decorations = fields.length > 1 ? fields[1] : "";
+        String date = fields.length > 2 ? fields[2] : "";
+        String author = fields.length > 3 ? fields[3] : "";
+        String subject = fields.length > 4 ? fields[4] : "";
+
+        Label graph = new Label(graphText.replaceFirst("\\*", "●"));
+        graph.getStyleClass().add("history-graph");
+        Label hashLabel = new Label(hash + (decorations.isBlank() ? "" : "  " + decorations));
+        hashLabel.getStyleClass().add("history-hash");
+        Label details = new Label(date + "  " + author);
+        details.getStyleClass().add("history-details");
+        Label subjectLabel = new Label(subject);
+        subjectLabel.getStyleClass().add("history-subject");
+        VBox metadata = new VBox(2, hashLabel, details, subjectLabel);
+        metadata.getStyleClass().add("history-metadata");
+        HBox cell = new HBox(12, graph, metadata);
+        cell.getStyleClass().add("history-cell");
+        return cell;
     }
 
     private void configureTable() {
