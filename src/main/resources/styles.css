@@ -122,6 +122,37 @@
     -fx-text-fill: #ffffff;
 }
 
+.dark .tab-pane,
+.dark .tab-content-area {
+    -fx-background-color: #161b22;
+}
+
+.dark .tab-pane .tab-header-area,
+.dark .tab-pane .tab-header-background {
+    -fx-background-color: #0d1117;
+}
+
+.dark .tab-pane .tab {
+    -fx-background-color: #21262d;
+    -fx-border-color: #30363d;
+}
+
+.dark .tab-pane .tab .tab-label {
+    -fx-text-fill: #8b949e;
+}
+
+.dark .tab-pane .tab:selected {
+    -fx-background-color: #161b22;
+}
+
+.dark .tab-pane .tab:selected .tab-label {
+    -fx-text-fill: #e6edf3;
+}
+
+.dark .split-pane-divider {
+    -fx-background-color: #30363d;
+}
+
 .dark .placeholder .label {
     -fx-text-fill: #8b949e;
 }
