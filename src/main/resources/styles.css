@@ -186,41 +186,8 @@
 }
 
 .history-view .list-cell {
-    -fx-padding: 0;
+    -fx-padding: 4px 8px;
     -fx-background-color: transparent;
-    -fx-text-fill: #24292f;
-}
-
-.history-cell {
-    -fx-padding: 7px 10px;
-    -fx-alignment: center-left;
-}
-
-.history-graph {
-    -fx-min-width: 150px;
-    -fx-font-family: "Consolas", monospace;
-    -fx-font-size: 14px;
-    -fx-text-fill: #57606a;
-}
-
-.history-metadata {
-    -fx-padding: 0 0 0 2px;
-}
-
-.history-hash {
-    -fx-font-family: "Consolas", monospace;
-    -fx-font-size: 12px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #0969da;
-}
-
-.history-details {
-    -fx-font-size: 11px;
-    -fx-text-fill: #57606a;
-}
-
-.history-subject {
-    -fx-font-size: 13px;
     -fx-text-fill: #24292f;
 }
 
@@ -271,22 +238,6 @@
 }
 
 .dark .history-view .list-cell {
-    -fx-text-fill: #e6edf3;
-}
-
-.dark .history-graph {
-    -fx-text-fill: #8b949e;
-}
-
-.dark .history-hash {
-    -fx-text-fill: #58a6ff;
-}
-
-.dark .history-details {
-    -fx-text-fill: #8b949e;
-}
-
-.dark .history-subject {
     -fx-text-fill: #e6edf3;
 }
 
