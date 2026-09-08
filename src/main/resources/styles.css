@@ -197,8 +197,10 @@
 }
 
 .history-graph {
-    -fx-min-width: 160px;
-    -fx-min-height: 42px;
+    -fx-min-width: 150px;
+    -fx-font-family: "Consolas", monospace;
+    -fx-font-size: 14px;
+    -fx-text-fill: #57606a;
 }
 
 .history-metadata {

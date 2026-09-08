@@ -32,10 +32,6 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -221,7 +217,8 @@ public final class GitGuiWindowsApp extends Application {
         String author = fields.length > 3 ? fields[3] : "";
         String subject = fields.length > 4 ? fields[4] : "";
 
-        HistoryGraph graph = new HistoryGraph(graphText);
+        Label graph = new Label(graphText.replaceFirst("\\*", "●"));
+        graph.getStyleClass().add("history-graph");
         Label hashLabel = new Label(hash + (decorations.isBlank() ? "" : "  " + decorations));
         hashLabel.getStyleClass().add("history-hash");
         Label details = new Label(date + "  " + author);
@@ -233,43 +230,6 @@ public final class GitGuiWindowsApp extends Application {
         HBox cell = new HBox(12, graph, metadata);
         cell.getStyleClass().add("history-cell");
         return cell;
-    }
-
-    private static final class HistoryGraph extends Canvas {
-        private static final double COLUMN_WIDTH = 14;
-        private static final double WIDTH = 160;
-        private static final double HEIGHT = 42;
-
-        private HistoryGraph(String graphText) {
-            super(WIDTH, HEIGHT);
-            getStyleClass().add("history-graph");
-            draw(graphText);
-        }
-
-        private void draw(String graphText) {
-            GraphicsContext graphics = getGraphicsContext2D();
-            graphics.setStroke(Color.web("#8250df"));
-            graphics.setFill(Color.web("#1f6feb"));
-            graphics.setLineWidth(2.4);
-            graphics.setLineCap(StrokeLineCap.ROUND);
-            double centerY = HEIGHT / 2;
-            for (int index = 0; index < graphText.length(); index++) {
-                double x = 9 + index * COLUMN_WIDTH;
-                switch (graphText.charAt(index)) {
-                    case '|' -> graphics.strokeLine(x, 0, x, HEIGHT);
-                    case '/' -> graphics.strokeLine(x + COLUMN_WIDTH, HEIGHT, x, 0);
-                    case '\\' -> graphics.strokeLine(x, HEIGHT, x + COLUMN_WIDTH, 0);
-                    case '*' -> {
-                        graphics.strokeLine(x, 0, x, centerY);
-                        graphics.strokeLine(x, centerY, x, HEIGHT);
-                        graphics.fillOval(x - 4.5, centerY - 4.5, 9, 9);
-                    }
-                    default -> {
-                        // Spaces keep graph columns aligned.
-                    }
-                }
-            }
-        }
     }
 
     private void configureTable() {
