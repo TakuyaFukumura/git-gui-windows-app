@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class GitFacadeTest {
+class GitServiceTest {
     @Test
     void validatesRepositoryAndReturnsItsRoot() throws Exception {
         Path directory = Files.createTempDirectory("git-service");

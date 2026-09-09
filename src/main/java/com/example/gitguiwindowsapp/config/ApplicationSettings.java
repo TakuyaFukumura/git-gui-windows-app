@@ -202,6 +202,22 @@ public final class ApplicationSettings {
         return path;
     }
 
+    public WindowSettings windowSettings() {
+        return new WindowSettings(windowWidth, windowHeight, windowX, windowY);
+    }
+
+    public GitSettings gitSettings() {
+        return new GitSettings(gitExecutable);
+    }
+
+    public RepositorySettings repositorySettings() {
+        return new RepositorySettings(openBaseDirectory, recentRepositories);
+    }
+
+    public ThemeSettings themeSettings() {
+        return new ThemeSettings(darkMode);
+    }
+
     public String getGitExecutable() {
         return gitExecutable;
     }

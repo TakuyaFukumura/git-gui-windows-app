@@ -15,7 +15,7 @@ public final class CommitService {
         this(new GitCommandRunner());
     }
 
-    public CommitService(GitCommandRunner runner) {
+    public CommitService(GitCommandExecutor runner) {
         commands = new GitCommandSupport(runner);
     }
 

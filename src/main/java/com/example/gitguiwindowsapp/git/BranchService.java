@@ -19,7 +19,7 @@ public final class BranchService {
         this(new GitCommandRunner());
     }
 
-    public BranchService(GitCommandRunner runner) {
+    public BranchService(GitCommandExecutor runner) {
         commands = new GitCommandSupport(runner);
     }
 

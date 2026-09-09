@@ -16,7 +16,7 @@ public final class HistoryService {
         this(new GitCommandRunner());
     }
 
-    public HistoryService(GitCommandRunner runner) {
+    public HistoryService(GitCommandExecutor runner) {
         commands = new GitCommandSupport(runner);
     }
 
