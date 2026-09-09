@@ -58,7 +58,7 @@ Git 実行ファイル、「開く...」の基準フォルダー、最近のリ�
 
 ```text
 src/main/java/com/example/gitguiwindowsapp/
-  GitGuiWindowsApp.java       JavaFX のリポジトリ/status UI
+  GitGuiWindowsApp.java       Stage、Scene、サービス配線、ライフサイクル
   application/                AppState
   config/                      ApplicationSettings、SettingsRepository
   git/                         runner、parser、用途別サービス
@@ -68,6 +68,11 @@ src/test/java/.../git/         runner、parser、service の単体テスト
 src/test/java/.../application/  状態モデルのヘッドレステスト
 docs/リファクタリング計画書.md  リファクタリング計画と対応状況
 ```
+
+Parser は Git の機械可読出力をモデルへ変換する責務に限定し、入力形式が
+壊れている場合は `IllegalArgumentException` で呼び出し側へ通知します。
+設定の読み書きは JavaFX から独立しており、破損した個別値は既定値へ戻し、
+設定ファイルの保存失敗は `IOException` を呼び出し側へ返します。
 
 ## 現在の対象外
 

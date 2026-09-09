@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ApplicationSettingsTest {
@@ -93,6 +94,21 @@ class ApplicationSettingsTest {
                     result.getRecentRepositories().get(0));
         } finally {
             Files.deleteIfExists(file);
+            Files.deleteIfExists(directory);
+        }
+    }
+
+    @Test
+    void propagatesSaveFailureWhenParentPathIsNotDirectory() throws Exception {
+        Path directory = Files.createTempDirectory("settings-save-failure");
+        Path parentFile = directory.resolve("not-a-directory");
+        Files.writeString(parentFile, "occupied");
+        try {
+            ApplicationSettings settings = ApplicationSettings.load(parentFile.resolve("settings.properties"));
+
+            assertThrows(java.nio.file.FileAlreadyExistsException.class, settings::save);
+        } finally {
+            Files.deleteIfExists(parentFile);
             Files.deleteIfExists(directory);
         }
     }

@@ -15,6 +15,13 @@ public final class GitStatusParser {
         }
     }
 
+    /**
+     * Parses {@code git status --porcelain=v1 -z --branch} output.
+     *
+     * <p>Empty output represents a repository without status records. Any
+     * non-empty record that does not follow the porcelain v1 shape is rejected
+     * rather than silently converted into a change.</p>
+     */
     public ParsedStatus parse(String output) {
         if (output == null || output.isEmpty()) {
             return new ParsedStatus("", "", 0, 0, List.of());
@@ -52,8 +59,11 @@ public final class GitStatusParser {
         }
         while (index < fields.length) {
             String entry = fields[index++];
-            if (entry.isEmpty() || entry.startsWith("##") || entry.length() < 3) {
+            if (entry.isEmpty() || entry.startsWith("##")) {
                 continue;
+            }
+            if (entry.length() < 3 || entry.charAt(2) != ' ') {
+                throw new IllegalArgumentException("Invalid status record.");
             }
             char x = entry.charAt(0);
             char y = entry.charAt(1);
@@ -61,9 +71,10 @@ public final class GitStatusParser {
             String originalPath = null;
             FileChangeType type = typeOf(x, y, path);
             if (type == FileChangeType.RENAMED || type == FileChangeType.COPIED) {
-                if (index < fields.length) {
-                    originalPath = fields[index++];
+                if (index >= fields.length || fields[index].isEmpty()) {
+                    throw new IllegalArgumentException("Missing original path for rename or copy.");
                 }
+                originalPath = fields[index++];
             }
             changes.add(new FileChange(path, originalPath, type, stageStateOf(x, y), x, y));
         }
