@@ -23,6 +23,16 @@ public final class ThemeService {
         themeButton.setAccessibleText(darkMode ? "ライトモードに切り替え" : "ダークモードに切り替え");
     }
 
+    public void apply(Node root, RepositoryToolbar toolbar, boolean darkMode) {
+        Objects.requireNonNull(root, "root");
+        Objects.requireNonNull(toolbar, "toolbar");
+        root.getStyleClass().remove("dark");
+        if (darkMode) {
+            root.getStyleClass().add("dark");
+        }
+        toolbar.applyTheme(darkMode);
+    }
+
     public void styleDialog(Dialog<?> dialog, boolean darkMode) {
         Objects.requireNonNull(dialog, "dialog");
         if (!darkMode) {
