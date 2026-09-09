@@ -5,6 +5,7 @@ import com.example.gitguiwindowsapp.model.StageState;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class GitStatusParserTest {
     @Test
@@ -26,5 +27,17 @@ class GitStatusParserTest {
         assertEquals(FileChangeType.ADDED, status.changes().get(1).type());
         assertEquals(FileChangeType.UNTRACKED, status.changes().get(2).type());
         assertEquals("old.txt", status.changes().get(3).originalPath());
+    }
+
+    @Test
+    void rejectsMalformedStatusRecords() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new GitStatusParser().parse("Mmissing"));
+    }
+
+    @Test
+    void rejectsRenamesWithoutOriginalPath() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new GitStatusParser().parse("R  renamed.txt\0"));
     }
 }

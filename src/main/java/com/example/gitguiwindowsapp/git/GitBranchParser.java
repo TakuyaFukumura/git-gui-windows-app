@@ -6,19 +6,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class GitBranchParser {
+    /**
+     * Parses {@code git branch --format=%(refname:short)%09%(HEAD)} output.
+     *
+     * <p>Each non-empty record must contain exactly a branch name and an optional
+     * {@code *} marker separated by a tab. Merged state is intentionally supplied
+     * by {@link BranchService}, because it comes from a separate Git command.</p>
+     */
     public List<BranchInfo> parse(String output) {
         List<BranchInfo> branches = new ArrayList<>();
-        if (output == null) {
+        if (output == null || output.isEmpty()) {
             return branches;
         }
         for (String line : output.split("\\R")) {
             if (line.isBlank()) {
                 continue;
             }
-            String[] fields = line.split("\t", 2);
-            branches.add(new BranchInfo(fields[0].trim(),
-                    fields.length > 1 && "*".equals(fields[1].trim()),
-                    fields.length > 2 && "merged".equals(fields[2].trim())));
+            String[] fields = line.split("\t", -1);
+            if (fields.length != 2 || fields[0].isBlank()
+                    || (!fields[1].isBlank() && !"*".equals(fields[1].trim()))) {
+                throw new IllegalArgumentException("Invalid branch record.");
+            }
+            branches.add(new BranchInfo(fields[0].trim(), "*".equals(fields[1].trim())));
         }
         return List.copyOf(branches);
     }
