@@ -64,7 +64,9 @@ public final class ChangesPane {
         TableColumn<FileChange, String> stage = new TableColumn<>("状態");
         stage.setCellValueFactory(data -> new javafx.beans.property.ReadOnlyStringWrapper(
                 data.getValue().stageState().name()));
-        changesTable.getColumns().addAll(path, type, stage);
+        changesTable.getColumns().add(path);
+        changesTable.getColumns().add(type);
+        changesTable.getColumns().add(stage);
     }
 
     public SplitPane view() {

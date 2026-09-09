@@ -70,7 +70,7 @@ public final class HistoryPane {
                 referencesView.setMaxWidth(260);
                 Label subject = new Label(entry.subject());
                 subject.getStyleClass().add("commit-subject");
-                subject.setTextOverrun(javafx.scene.control.OverrunStyle.ELLIPSIS);
+                subject.setTextOverrun(OverrunStyle.ELLIPSIS);
                 subject.setTooltip(new Tooltip(entry.subject()));
                 HBox.setHgrow(subject, Priority.ALWAYS);
                 Label metadata = new Label(entry.shortId() + "  " + entry.authorName() + "  "
