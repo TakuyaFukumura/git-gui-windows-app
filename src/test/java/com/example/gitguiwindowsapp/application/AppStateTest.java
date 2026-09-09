@@ -1,11 +1,6 @@
 package com.example.gitguiwindowsapp.application;
 
-import com.example.gitguiwindowsapp.model.BranchInfo;
-import com.example.gitguiwindowsapp.model.CommitEntry;
-import com.example.gitguiwindowsapp.model.CommitReference;
-import com.example.gitguiwindowsapp.model.CommitReferenceType;
-import com.example.gitguiwindowsapp.model.GraphSegment;
-import com.example.gitguiwindowsapp.model.RepositoryInfo;
+import com.example.gitguiwindowsapp.model.*;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
@@ -13,7 +8,6 @@ import java.time.OffsetDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class AppStateTest {
@@ -24,7 +18,7 @@ class AppStateTest {
         CommitEntry commit = new CommitEntry("id", "short", "subject", "message",
                 "author", "email", OffsetDateTime.now(), List.of(),
                 List.of(new CommitReference("main", CommitReferenceType.LOCAL_BRANCH, true)),
-                List.<GraphSegment>of());
+                List.of());
 
         state.setRepository(info, List.of(new BranchInfo("main", true, true)));
         state.setHistory(List.of(commit));

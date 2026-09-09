@@ -17,15 +17,15 @@ public record CommitEntry(
         List<GraphSegment> graph) {
 
     public CommitEntry {
-            Objects.requireNonNull(id, "id");
-            Objects.requireNonNull(shortId, "shortId");
-            Objects.requireNonNull(subject, "subject");
-            Objects.requireNonNull(message, "message");
-            Objects.requireNonNull(authorName, "authorName");
-            Objects.requireNonNull(authorEmail, "authorEmail");
-            Objects.requireNonNull(committedAt, "committedAt");
-            parents = List.copyOf(parents == null ? List.of() : parents);
-            references = List.copyOf(references == null ? List.of() : references);
-            graph = List.copyOf(graph == null ? List.of() : graph);
-        }
+        Objects.requireNonNull(id, "id");
+        Objects.requireNonNull(shortId, "shortId");
+        Objects.requireNonNull(subject, "subject");
+        Objects.requireNonNull(message, "message");
+        Objects.requireNonNull(authorName, "authorName");
+        Objects.requireNonNull(authorEmail, "authorEmail");
+        Objects.requireNonNull(committedAt, "committedAt");
+        parents = List.copyOf(parents == null ? List.of() : parents);
+        references = List.copyOf(references == null ? List.of() : references);
+        graph = List.copyOf(graph == null ? List.of() : graph);
+    }
 }

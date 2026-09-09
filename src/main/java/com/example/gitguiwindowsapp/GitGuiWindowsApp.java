@@ -3,36 +3,16 @@ package com.example.gitguiwindowsapp;
 import com.example.gitguiwindowsapp.application.AppState;
 import com.example.gitguiwindowsapp.config.ApplicationSettings;
 import com.example.gitguiwindowsapp.config.SettingsRepository;
-import com.example.gitguiwindowsapp.git.BranchService;
-import com.example.gitguiwindowsapp.git.ChangeService;
-import com.example.gitguiwindowsapp.git.CommitService;
-import com.example.gitguiwindowsapp.git.GitCommandException;
-import com.example.gitguiwindowsapp.git.GitCommandRunner;
-import com.example.gitguiwindowsapp.git.HistoryService;
-import com.example.gitguiwindowsapp.git.RepositoryService;
-import com.example.gitguiwindowsapp.model.BranchInfo;
-import com.example.gitguiwindowsapp.model.DiffDocument;
-import com.example.gitguiwindowsapp.model.DiffLine;
-import com.example.gitguiwindowsapp.model.DiffLineType;
-import com.example.gitguiwindowsapp.model.FileChange;
-import com.example.gitguiwindowsapp.model.GitOperationResult;
-import com.example.gitguiwindowsapp.model.RepositoryInfo;
-import com.example.gitguiwindowsapp.ui.ChangesPane;
-import com.example.gitguiwindowsapp.ui.CommitActionBar;
-import com.example.gitguiwindowsapp.ui.DialogService;
-import com.example.gitguiwindowsapp.ui.HistoryPane;
-import com.example.gitguiwindowsapp.ui.OperationCoordinator;
-import com.example.gitguiwindowsapp.ui.RepositoryToolbar;
-import com.example.gitguiwindowsapp.ui.ThemeService;
+import com.example.gitguiwindowsapp.git.*;
+import com.example.gitguiwindowsapp.model.*;
+import com.example.gitguiwindowsapp.ui.*;
 import javafx.application.Application;
-import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
@@ -69,6 +49,32 @@ public final class GitGuiWindowsApp extends Application {
 
     public static void main(String[] args) {
         launch(args);
+    }
+
+    private static List<DiffLine> formatDiff(DiffDocument diff) {
+        if (diff.tooLarge()) {
+            return List.of(new DiffLine(DiffLineType.META, "差分が10 MBを超えるため表示できません。"));
+        }
+        if (diff.binary()) {
+            List<DiffLine> lines = new ArrayList<>();
+            lines.add(new DiffLine(DiffLineType.META, "バイナリファイルのため内容を表示できません。"));
+            lines.add(new DiffLine(DiffLineType.META, ""));
+            lines.addAll(linesFor(diff.rawText()));
+            return lines;
+        }
+        if (!diff.rawText().isBlank()) {
+            List<DiffLine> lines = diff.files().stream().flatMap(file -> file.lines().stream()).toList();
+            return lines.isEmpty() ? linesFor(diff.rawText()) : lines;
+        }
+        return List.of(new DiffLine(DiffLineType.META, "差分はありません。"));
+    }
+
+    private static List<DiffLine> linesFor(String text) {
+        List<DiffLine> lines = new ArrayList<>();
+        for (String line : text.split("\\R", -1)) {
+            lines.add(new DiffLine(DiffLineType.META, line));
+        }
+        return lines;
     }
 
     @Override
@@ -324,32 +330,6 @@ public final class GitGuiWindowsApp extends Application {
         } catch (IOException e) {
             LOGGER.log(Level.WARNING, "設定の保存に失敗しました。", e);
         }
-    }
-
-    private static List<DiffLine> formatDiff(DiffDocument diff) {
-        if (diff.tooLarge()) {
-            return List.of(new DiffLine(DiffLineType.META, "差分が10 MBを超えるため表示できません。"));
-        }
-        if (diff.binary()) {
-            List<DiffLine> lines = new ArrayList<>();
-            lines.add(new DiffLine(DiffLineType.META, "バイナリファイルのため内容を表示できません。"));
-            lines.add(new DiffLine(DiffLineType.META, ""));
-            lines.addAll(linesFor(diff.rawText()));
-            return lines;
-        }
-        if (!diff.rawText().isBlank()) {
-            List<DiffLine> lines = diff.files().stream().flatMap(file -> file.lines().stream()).toList();
-            return lines.isEmpty() ? linesFor(diff.rawText()) : lines;
-        }
-        return List.of(new DiffLine(DiffLineType.META, "差分はありません。"));
-    }
-
-    private static List<DiffLine> linesFor(String text) {
-        List<DiffLine> lines = new ArrayList<>();
-        for (String line : text.split("\\R", -1)) {
-            lines.add(new DiffLine(DiffLineType.META, line));
-        }
-        return lines;
     }
 
     private record RepositorySnapshot(RepositoryInfo info, List<BranchInfo> branches) {

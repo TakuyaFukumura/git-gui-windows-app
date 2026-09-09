@@ -19,6 +19,10 @@ public final class CommitGraphView extends Region {
         setMaxWidth(160);
     }
 
+    private static double laneX(int lane) {
+        return NODE_RADIUS + lane * LANE_WIDTH + 8;
+    }
+
     public void setEntry(CommitEntry entry) {
         this.entry = entry;
         requestLayout();
@@ -42,9 +46,5 @@ public final class CommitGraphView extends Region {
         Circle node = new Circle(laneX(nodeLane), centerY, NODE_RADIUS);
         node.getStyleClass().add("graph-node");
         getChildren().add(node);
-    }
-
-    private static double laneX(int lane) {
-        return NODE_RADIUS + lane * LANE_WIDTH + 8;
     }
 }

@@ -8,11 +8,50 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class GitStatusParser {
-    public record ParsedStatus(String branch, String upstream, int ahead, int behind,
-                               List<FileChange> changes) {
-        public ParsedStatus {
-            changes = List.copyOf(changes);
+    private static int numberAfter(String text, int start) {
+        int end = start;
+        while (end < text.length() && Character.isDigit(text.charAt(end))) {
+            end++;
         }
+        try {
+            if (end == start) {
+                throw new NumberFormatException("Missing tracking count.");
+            }
+            return Integer.parseInt(text.substring(start, end));
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid branch tracking count.", e);
+        }
+    }
+
+    private static StageState stageStateOf(char x, char y) {
+        if (x == '?' && y == '?') {
+            return StageState.UNTRACKED;
+        }
+        if (x == 'U' || y == 'U') {
+            return StageState.UNMERGED;
+        }
+        boolean staged = x != ' ';
+        boolean unstaged = y != ' ';
+        if (staged && unstaged) {
+            return StageState.BOTH;
+        }
+        return staged ? StageState.STAGED : unstaged ? StageState.UNSTAGED : StageState.CLEAN;
+    }
+
+    private static FileChangeType typeOf(char x, char y, String path) {
+        if (x == '?' && y == '?') {
+            return FileChangeType.UNTRACKED;
+        }
+        char status = x != ' ' ? x : y;
+        return switch (status) {
+            case 'A' -> FileChangeType.ADDED;
+            case 'M' -> FileChangeType.MODIFIED;
+            case 'D' -> FileChangeType.DELETED;
+            case 'R' -> FileChangeType.RENAMED;
+            case 'C' -> FileChangeType.COPIED;
+            case 'U' -> FileChangeType.UNMERGED;
+            default -> FileChangeType.UNKNOWN;
+        };
     }
 
     /**
@@ -83,49 +122,10 @@ public final class GitStatusParser {
         return new ParsedStatus(branch, upstream, ahead, behind, changes);
     }
 
-    private static int numberAfter(String text, int start) {
-        int end = start;
-        while (end < text.length() && Character.isDigit(text.charAt(end))) {
-            end++;
+    public record ParsedStatus(String branch, String upstream, int ahead, int behind,
+                               List<FileChange> changes) {
+        public ParsedStatus {
+            changes = List.copyOf(changes);
         }
-        try {
-            if (end == start) {
-                throw new NumberFormatException("Missing tracking count.");
-            }
-            return Integer.parseInt(text.substring(start, end));
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid branch tracking count.", e);
-        }
-    }
-
-    private static StageState stageStateOf(char x, char y) {
-        if (x == '?' && y == '?') {
-            return StageState.UNTRACKED;
-        }
-        if (x == 'U' || y == 'U') {
-            return StageState.UNMERGED;
-        }
-        boolean staged = x != ' ';
-        boolean unstaged = y != ' ';
-        if (staged && unstaged) {
-            return StageState.BOTH;
-        }
-        return staged ? StageState.STAGED : unstaged ? StageState.UNSTAGED : StageState.CLEAN;
-    }
-
-    private static FileChangeType typeOf(char x, char y, String path) {
-        if (x == '?' && y == '?') {
-            return FileChangeType.UNTRACKED;
-        }
-        char status = x != ' ' ? x : y;
-        return switch (status) {
-            case 'A' -> FileChangeType.ADDED;
-            case 'M' -> FileChangeType.MODIFIED;
-            case 'D' -> FileChangeType.DELETED;
-            case 'R' -> FileChangeType.RENAMED;
-            case 'C' -> FileChangeType.COPIED;
-            case 'U' -> FileChangeType.UNMERGED;
-            default -> path.isBlank() ? FileChangeType.UNKNOWN : FileChangeType.UNKNOWN;
-        };
     }
 }

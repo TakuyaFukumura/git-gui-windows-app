@@ -4,12 +4,7 @@ import com.example.gitguiwindowsapp.model.DiffLine;
 import com.example.gitguiwindowsapp.model.DiffLineType;
 import com.example.gitguiwindowsapp.model.FileChange;
 import javafx.collections.FXCollections;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.SplitPane;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -47,6 +42,17 @@ public final class ChangesPane {
         view.setDividerPositions(0.38);
     }
 
+    private static String styleClassFor(DiffLineType type) {
+        return switch (type) {
+            case ADDITION -> "diff-addition";
+            case DELETION -> "diff-deletion";
+            case HEADER -> "diff-header";
+            case HUNK -> "diff-hunk";
+            case META -> "diff-meta";
+            case CONTEXT -> "diff-context";
+        };
+    }
+
     private void configureTable() {
         TableColumn<FileChange, String> path = new TableColumn<>("ファイル");
         path.setCellValueFactory(data -> new javafx.beans.property.ReadOnlyStringWrapper(
@@ -79,16 +85,5 @@ public final class ChangesPane {
 
     public void clearDiff() {
         diffView.getItems().clear();
-    }
-
-    private static String styleClassFor(DiffLineType type) {
-        return switch (type) {
-            case ADDITION -> "diff-addition";
-            case DELETION -> "diff-deletion";
-            case HEADER -> "diff-header";
-            case HUNK -> "diff-hunk";
-            case META -> "diff-meta";
-            case CONTEXT -> "diff-context";
-        };
     }
 }

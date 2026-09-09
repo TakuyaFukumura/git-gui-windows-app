@@ -36,6 +36,7 @@ public final class ApplicationSettings {
     private static final String OPEN_BASE_DIRECTORY = "open.baseDirectory";
     private static final String RECENT_REPOSITORIES = "recent.repositories";
     private final Path path;
+    private final List<String> recentRepositories;
     private boolean darkMode;
     private double windowWidth;
     private double windowHeight;
@@ -43,7 +44,6 @@ public final class ApplicationSettings {
     private double windowY;
     private String gitExecutable;
     private Path openBaseDirectory;
-    private final List<String> recentRepositories;
 
     private ApplicationSettings(Path path) {
         this.path = path;
