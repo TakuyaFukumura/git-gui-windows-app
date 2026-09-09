@@ -59,11 +59,11 @@ Git 実行ファイル、「開く...」の基準フォルダー、最近のリ�
 ```text
 src/main/java/com/example/gitguiwindowsapp/
   GitGuiWindowsApp.java       JavaFX のリポジトリ/status UI
-  application/                AppState、非同期操作Coordinator
+  application/                AppState
   config/                      ApplicationSettings、SettingsRepository
-  git/                         runner、parser、用途別Facade、GitService
+  git/                         runner、parser、用途別サービス
   model/                       Git の不変モデル
-  ui/                          CommitGraphView、ThemeService
+  ui/                          CommitGraphView、ThemeService、OperationCoordinator
 src/test/java/.../git/         runner、parser、service の単体テスト
 src/test/java/.../application/  状態モデルのヘッドレステスト
 docs/リファクタリング計画書.md  リファクタリング計画と対応状況
