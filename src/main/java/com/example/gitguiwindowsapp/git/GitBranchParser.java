@@ -11,7 +11,9 @@ public final class GitBranchParser {
      *
      * <p>Each non-empty record must contain exactly a branch name and an optional
      * {@code *} marker separated by a tab. Merged state is intentionally supplied
-     * by {@link BranchService}, because it comes from a separate Git command.</p>
+     * by {@link BranchService}, because it comes from a separate Git command.
+     * Branch names and marker fields are preserved as machine-readable values;
+     * UI labels are not generated here.</p>
      */
     public List<BranchInfo> parse(String output) {
         List<BranchInfo> branches = new ArrayList<>();

@@ -99,6 +99,23 @@ class ApplicationSettingsTest {
     }
 
     @Test
+    void removesDuplicateRecentRepositoriesWhilePreservingNewestOrder() throws Exception {
+        Path directory = Files.createTempDirectory("duplicate-recent-settings");
+        Path file = directory.resolve("settings.properties");
+        try {
+            Files.writeString(file, "recent.repositories=repo-a|repo-b|repo-a|repo-c\n");
+
+            ApplicationSettings result = ApplicationSettings.load(file);
+
+            assertEquals(java.util.List.of("repo-a", "repo-b", "repo-c"),
+                    result.getRecentRepositories());
+        } finally {
+            Files.deleteIfExists(file);
+            Files.deleteIfExists(directory);
+        }
+    }
+
+    @Test
     void propagatesSaveFailureWhenParentPathIsNotDirectory() throws Exception {
         Path directory = Files.createTempDirectory("settings-save-failure");
         Path parentFile = directory.resolve("not-a-directory");

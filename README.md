@@ -65,7 +65,7 @@ src/main/java/com/example/gitguiwindowsapp/
   model/                       Git の不変モデル
   ui/                          RepositoryToolbar、ChangesPane、CommitActionBar、HistoryPane、
                                DialogService、CommitGraphView、ThemeService、OperationCoordinator
-src/test/java/.../git/         runner、parser、service の単体テスト
+src/test/java/.../git/         runner、parser（commit/status/diff/branch）、service の単体テスト
 src/test/java/.../application/  状態モデルのヘッドレステスト
 docs/リファクタリング計画書.md  リファクタリング計画と対応状況
 ```

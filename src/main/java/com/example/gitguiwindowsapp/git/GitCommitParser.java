@@ -17,7 +17,17 @@ final class GitCommitParser {
     private static final String FIELD_SEPARATOR = "\u001f";
     private static final String RECORD_SEPARATOR = "\u001e";
 
+    /**
+     * Parses records emitted by {@code git log --format} using control
+     * characters as delimiters. Eight fields are required. Empty output is a
+     * valid empty history; malformed records or timestamps fail explicitly.
+     * Parent IDs are separated by arbitrary whitespace, as produced by Git for
+     * both ordinary and merge commits.
+     */
     List<CommitEntry> parseCommits(String output, Map<String, List<CommitReference>> references) {
+        if (output == null || output.isEmpty()) {
+            return List.of();
+        }
         List<RawCommit> rawCommits = new ArrayList<>();
         for (String record : output.split(RECORD_SEPARATOR, -1)) {
             if (record.isBlank()) {
@@ -34,7 +44,7 @@ final class GitCommitParser {
                 throw new IllegalArgumentException("Invalid commit timestamp.", e);
             }
             rawCommits.add(new RawCommit(fields[0], fields[1], fields[2], fields[3],
-                    committedAt, fields[5].isBlank() ? List.of() : List.of(fields[5].split(" ")),
+                    committedAt, fields[5].isBlank() ? List.of() : List.of(fields[5].trim().split("\\s+")),
                     fields[6], fields[7]));
         }
         return addGraph(rawCommits, references);
@@ -46,6 +56,9 @@ final class GitCommitParser {
         if (!headId.isBlank()) {
             addReference(references, headId, new CommitReference("HEAD",
                     CommitReferenceType.HEAD, true));
+        }
+        if (output == null || output.isEmpty()) {
+            return references;
         }
         for (String line : output.lines().toList()) {
             if (line.isBlank()) {

@@ -28,4 +28,15 @@ class GitDiffParserTest {
         assertTrue(document.tooLarge());
         assertTrue(document.isEmpty());
     }
+
+    @Test
+    void preservesSpecialCharactersAndBinaryMarkers() {
+        String diff = "diff --git \"a/name with space.txt\" \"b/name with space.txt\"\n"
+                + "Binary files a/name with space.txt and b/name with space.txt differ\n";
+
+        var document = new GitDiffParser().parse(diff);
+
+        assertTrue(document.binary());
+        assertEquals(diff, document.rawText());
+    }
 }

@@ -18,8 +18,10 @@ public final class GitStatusParser {
     /**
      * Parses {@code git status --porcelain=v1 -z --branch} output.
      *
-     * <p>Empty output represents a repository without status records. Any
-     * non-empty record that does not follow the porcelain v1 shape is rejected
+     * <p>The first NUL-delimited record is the optional branch header. Change
+     * records use the two-column porcelain v1 status followed by a path. Rename
+     * and copy records consume one additional path record. Empty input means
+     * that no status records were produced. Malformed records are rejected
      * rather than silently converted into a change.</p>
      */
     public ParsedStatus parse(String output) {
@@ -87,9 +89,12 @@ public final class GitStatusParser {
             end++;
         }
         try {
+            if (end == start) {
+                throw new NumberFormatException("Missing tracking count.");
+            }
             return Integer.parseInt(text.substring(start, end));
-        } catch (RuntimeException e) {
-            return 0;
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid branch tracking count.", e);
         }
     }
 
