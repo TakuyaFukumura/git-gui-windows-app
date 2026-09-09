@@ -1,4 +1,4 @@
-package com.example.gitguiwindowsapp.application;
+package com.example.gitguiwindowsapp.ui;
 
 import javafx.concurrent.Task;
 
@@ -7,7 +7,7 @@ import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
 /**
- * Git操作のTask生成とバックグラウンドスレッド管理を一元化します。
+ * JavaFX Taskの生成とバックグラウンドスレッド管理を担当します。
  */
 public final class OperationCoordinator {
     public <T> void execute(Callable<T> work, Consumer<T> success,

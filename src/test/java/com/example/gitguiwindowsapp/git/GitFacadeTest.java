@@ -11,13 +11,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class GitServiceTest {
+class GitFacadeTest {
     @Test
     void validatesRepositoryAndReturnsItsRoot() throws Exception {
         Path directory = Files.createTempDirectory("git-service");
         try {
             new GitCommandRunner().run(directory, java.util.List.of("init", "-q"));
-            Path root = new GitService().validateRepository(directory);
+            Path root = new RepositoryService().validate(directory);
             assertEquals(directory.toRealPath(), root);
         } finally {
             deleteTree(directory);
@@ -29,7 +29,7 @@ class GitServiceTest {
         Path directory = Files.createTempDirectory("not-a-git-repository");
         try {
             assertThrows(GitCommandException.class,
-                    () -> new GitService().validateRepository(directory));
+                    () -> new RepositoryService().validate(directory));
         } finally {
             deleteTree(directory);
         }
@@ -44,21 +44,24 @@ class GitServiceTest {
             runner.run(directory, List.of("config", "user.email", "test@example.com"));
             runner.run(directory, List.of("config", "user.name", "Test User"));
             Files.writeString(directory.resolve("file.txt"), "one\n");
-            GitService service = new GitService(runner);
+            RepositoryService repositoryService = new RepositoryService(runner);
+            ChangeService changeService = new ChangeService(runner);
+            BranchService branchService = new BranchService(runner);
+            CommitService commitService = new CommitService(runner);
 
             assertEquals(com.example.gitguiwindowsapp.model.FileChangeType.UNTRACKED,
-                    service.status(directory).changes().get(0).type());
-            service.stage(directory, "file.txt");
+                    repositoryService.status(directory).changes().get(0).type());
+            changeService.stage(directory, "file.txt");
             assertEquals(com.example.gitguiwindowsapp.model.StageState.STAGED,
-                    service.status(directory).changes().get(0).stageState());
-            service.unstage(directory, "file.txt");
+                    repositoryService.status(directory).changes().get(0).stageState());
+            changeService.unstage(directory, "file.txt");
             assertEquals(com.example.gitguiwindowsapp.model.StageState.UNTRACKED,
-                    service.status(directory).changes().get(0).stageState());
-            service.stage(directory, "file.txt");
-            assertEquals(40, service.commit(directory, "initial commit").commitId().length());
-            service.createBranch(directory, "feature");
-            service.checkout(directory, "feature");
-            assertEquals("feature", service.status(directory).branch());
+                    repositoryService.status(directory).changes().get(0).stageState());
+            changeService.stage(directory, "file.txt");
+            assertEquals(40, commitService.commit(directory, "initial commit").commitId().length());
+            branchService.create(directory, "feature");
+            branchService.checkout(directory, "feature");
+            assertEquals("feature", repositoryService.status(directory).branch());
         } finally {
             deleteTree(directory);
         }
@@ -70,12 +73,12 @@ class GitServiceTest {
         try {
             GitCommandRunner runner = new GitCommandRunner();
             runner.run(directory, List.of("init", "-q"));
-            GitService service = new GitService(runner);
+            BranchService service = new BranchService(runner);
 
             assertThrows(GitCommandException.class,
-                    () -> service.createBranch(directory, "invalid..name"));
+                    () -> service.create(directory, "invalid..name"));
             assertThrows(GitCommandException.class,
-                    () -> service.createBranch(directory, "-invalid"));
+                    () -> service.create(directory, "-invalid"));
         } finally {
             deleteTree(directory);
         }
@@ -92,19 +95,19 @@ class GitServiceTest {
             Files.writeString(directory.resolve("file.txt"), "one\n");
             runner.run(directory, List.of("add", "file.txt"));
             runner.run(directory, List.of("commit", "-qm", "initial"));
-            GitService service = new GitService(runner);
+            BranchService service = new BranchService(runner);
             String defaultBranch = runner.run(directory, List.of("branch", "--show-current"))
                     .standardOutput().trim();
-            service.createBranch(directory, "merged");
-            service.createBranch(directory, "unmerged");
+            service.create(directory, "merged");
+            service.create(directory, "unmerged");
             service.checkout(directory, "unmerged");
             Files.writeString(directory.resolve("file.txt"), "two\n");
-            service.stage(directory, "file.txt");
-            service.commit(directory, "unmerged change");
+            new ChangeService(runner).stage(directory, "file.txt");
+            new CommitService(runner).commit(directory, "unmerged change");
             service.checkout(directory, defaultBranch);
-            service.deleteBranch(directory, "merged");
+            service.delete(directory, "merged");
             assertThrows(GitCommandException.class,
-                    () -> service.deleteBranch(directory, "unmerged"));
+                    () -> service.delete(directory, "unmerged"));
         } finally {
             deleteTree(directory);
         }
@@ -122,13 +125,13 @@ class GitServiceTest {
             runner.run(directory, List.of("add", "file.txt"));
             runner.run(directory, List.of("commit", "-qm", "initial"));
 
-            GitService service = new GitService(runner);
+            BranchService service = new BranchService(runner);
             String defaultBranch = runner.run(directory, List.of("branch", "--show-current"))
                     .standardOutput().trim();
-            service.createBranch(directory, "feature");
+            service.create(directory, "feature");
 
             List<com.example.gitguiwindowsapp.model.BranchInfo> branches =
-                    service.branches(directory);
+                    service.list(directory);
 
             assertEquals(2, branches.size());
             List<String> branchNames = branches.stream()
@@ -155,7 +158,7 @@ class GitServiceTest {
             runner.run(directory, List.of("commit", "-qm", "initial"));
 
             List<com.example.gitguiwindowsapp.model.CommitEntry> graph =
-                    new GitService(runner).commitHistory(directory);
+                    new HistoryService(runner).list(directory);
 
             assertEquals(1, graph.size());
             assertEquals("initial", graph.get(0).subject());
@@ -182,7 +185,7 @@ class GitServiceTest {
             runner.run(directory, List.of("branch", "feature"));
             runner.run(directory, List.of("tag", "v1.0.0"));
 
-            var entry = new GitService(runner).commitHistory(directory).get(0);
+            var entry = new HistoryService(runner).list(directory).get(0);
 
             assertTrue(entry.references().stream().anyMatch(reference ->
                     reference.type() == com.example.gitguiwindowsapp.model.CommitReferenceType.HEAD));

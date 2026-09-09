@@ -28,8 +28,6 @@ public final class ApplicationSettings {
     private static final String GIT_EXECUTABLE = "git.executable";
     private static final String OPEN_BASE_DIRECTORY = "open.baseDirectory";
     private static final String RECENT_REPOSITORIES = "recent.repositories";
-    private static final int MAX_RECENT_REPOSITORIES = 5;
-
     private final Path path;
     private boolean darkMode;
     private double windowWidth;
@@ -42,12 +40,12 @@ public final class ApplicationSettings {
 
     private ApplicationSettings(Path path) {
         this.path = path;
-        darkMode = false;
-        windowWidth = 800;
-        windowHeight = 600;
-        windowX = Double.NaN;
-        windowY = Double.NaN;
-        gitExecutable = "git";
+        darkMode = SettingsDefaults.DARK_MODE;
+        windowWidth = SettingsDefaults.WINDOW_WIDTH;
+        windowHeight = SettingsDefaults.WINDOW_HEIGHT;
+        windowX = SettingsDefaults.WINDOW_POSITION;
+        windowY = SettingsDefaults.WINDOW_POSITION;
+        gitExecutable = SettingsDefaults.GIT_EXECUTABLE;
         openBaseDirectory = null;
         recentRepositories = new ArrayList<>();
     }
@@ -72,14 +70,16 @@ public final class ApplicationSettings {
         try (Reader reader = Files.newBufferedReader(path)) {
             properties.load(reader);
         }
-        settings.darkMode = Boolean.parseBoolean(properties.getProperty(DARK_MODE, "false"));
+        settings.darkMode = Boolean.parseBoolean(properties.getProperty(DARK_MODE,
+                Boolean.toString(SettingsDefaults.DARK_MODE)));
         settings.windowWidth = positiveOrDefault(properties, WINDOW_WIDTH, settings.windowWidth);
         settings.windowHeight = positiveOrDefault(properties, WINDOW_HEIGHT, settings.windowHeight);
         settings.windowX = finiteOrDefault(properties, WINDOW_X, settings.windowX);
         settings.windowY = finiteOrDefault(properties, WINDOW_Y, settings.windowY);
-        settings.gitExecutable = properties.getProperty(GIT_EXECUTABLE, "git").trim();
+        settings.gitExecutable = properties.getProperty(GIT_EXECUTABLE,
+                SettingsDefaults.GIT_EXECUTABLE).trim();
         if (settings.gitExecutable.isEmpty()) {
-            settings.gitExecutable = "git";
+            settings.gitExecutable = SettingsDefaults.GIT_EXECUTABLE;
         }
         String openBaseDirectory = properties.getProperty(OPEN_BASE_DIRECTORY, "").trim();
         if (!openBaseDirectory.isEmpty()) {
@@ -94,7 +94,7 @@ public final class ApplicationSettings {
             if (!value.isBlank() && !settings.recentRepositories.contains(value)) {
                 settings.recentRepositories.add(value);
             }
-            if (settings.recentRepositories.size() == MAX_RECENT_REPOSITORIES) {
+            if (settings.recentRepositories.size() == SettingsDefaults.MAX_RECENT_REPOSITORIES) {
                 break;
             }
         }
@@ -226,8 +226,9 @@ public final class ApplicationSettings {
         String value = repository.toAbsolutePath().normalize().toString();
         recentRepositories.remove(value);
         recentRepositories.add(0, value);
-        if (recentRepositories.size() > MAX_RECENT_REPOSITORIES) {
-            recentRepositories.subList(MAX_RECENT_REPOSITORIES, recentRepositories.size()).clear();
+        if (recentRepositories.size() > SettingsDefaults.MAX_RECENT_REPOSITORIES) {
+            recentRepositories.subList(SettingsDefaults.MAX_RECENT_REPOSITORIES,
+                    recentRepositories.size()).clear();
         }
     }
 }
