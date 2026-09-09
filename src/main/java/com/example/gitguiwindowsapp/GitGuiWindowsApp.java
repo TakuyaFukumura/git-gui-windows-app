@@ -1,11 +1,17 @@
 package com.example.gitguiwindowsapp;
 
 import com.example.gitguiwindowsapp.config.ApplicationSettings;
+import com.example.gitguiwindowsapp.config.SettingsRepository;
 import com.example.gitguiwindowsapp.application.AppState;
 import com.example.gitguiwindowsapp.application.OperationCoordinator;
+import com.example.gitguiwindowsapp.git.BranchService;
+import com.example.gitguiwindowsapp.git.ChangeService;
+import com.example.gitguiwindowsapp.git.CommitService;
 import com.example.gitguiwindowsapp.git.GitCommandException;
 import com.example.gitguiwindowsapp.git.GitCommandRunner;
 import com.example.gitguiwindowsapp.git.GitService;
+import com.example.gitguiwindowsapp.git.HistoryService;
+import com.example.gitguiwindowsapp.git.RepositoryService;
 import com.example.gitguiwindowsapp.model.BranchInfo;
 import com.example.gitguiwindowsapp.model.CommitEntry;
 import com.example.gitguiwindowsapp.model.CommitReference;
@@ -17,6 +23,7 @@ import com.example.gitguiwindowsapp.model.FileChange;
 import com.example.gitguiwindowsapp.model.GitOperationResult;
 import com.example.gitguiwindowsapp.model.RepositoryInfo;
 import com.example.gitguiwindowsapp.ui.CommitGraphView;
+import com.example.gitguiwindowsapp.ui.ThemeService;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
@@ -25,7 +32,6 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -63,7 +69,13 @@ public final class GitGuiWindowsApp extends Application {
     private static final String APP_VERSION = "0.8.1";
 
     private ApplicationSettings settings;
-    private GitService gitService;
+    private final SettingsRepository settingsRepository = new SettingsRepository();
+    private RepositoryService repositoryService;
+    private ChangeService changeService;
+    private BranchService branchService;
+    private HistoryService historyService;
+    private CommitService commitService;
+    private final ThemeService themeService = new ThemeService();
     private final AppState appState = new AppState();
     private final OperationCoordinator operationCoordinator = new OperationCoordinator();
     private Stage stage;
@@ -115,8 +127,13 @@ public final class GitGuiWindowsApp extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         stage = primaryStage;
-        settings = ApplicationSettings.load();
-        gitService = new GitService(new GitCommandRunner(settings.getGitExecutable()));
+        settings = settingsRepository.load();
+        GitService gitService = new GitService(new GitCommandRunner(settings.getGitExecutable()));
+        repositoryService = new RepositoryService(gitService);
+        changeService = new ChangeService(gitService);
+        branchService = new BranchService(gitService);
+        historyService = new HistoryService(gitService);
+        commitService = new CommitService(gitService);
 
         root = createLayout();
         Scene scene = new Scene(root, settings.getWindowWidth(), settings.getWindowHeight());
@@ -313,8 +330,8 @@ public final class GitGuiWindowsApp extends Application {
         }
         setBusy(true, "リポジトリを確認中...");
         operationCoordinator.execute(() -> {
-            RepositoryInfo info = gitService.status(path);
-            List<BranchInfo> branches = gitService.branches(info.root());
+            RepositoryInfo info = repositoryService.status(path);
+            List<BranchInfo> branches = branchService.list(info.root());
             return new RepositorySnapshot(info, branches);
         }, snapshot -> {
             appState.setRepository(snapshot.info(), snapshot.branches());
@@ -352,7 +369,7 @@ public final class GitGuiWindowsApp extends Application {
         historyRefreshButton.setDisable(true);
         String selectedId = Optional.ofNullable(historyView.getSelectionModel().getSelectedItem())
                 .map(CommitEntry::id).orElse(null);
-        operationCoordinator.execute(() -> gitService.commitHistory(appState.repository()), entries -> {
+        operationCoordinator.execute(() -> historyService.list(appState.repository()), entries -> {
             appState.setHistory(entries);
             applyHistoryFilter(historySearchField.getText());
             if (selectedId != null) {
@@ -452,7 +469,7 @@ public final class GitGuiWindowsApp extends Application {
         }
         boolean cached = change.isStaged() && !change.isUnstaged();
         setBusy(true, "差分を読み込み中...");
-        operationCoordinator.execute(() -> gitService.diff(appState.repository(), change.path(), cached), diff -> {
+        operationCoordinator.execute(() -> changeService.diff(appState.repository(), change.path(), cached), diff -> {
             diffView.setItems(FXCollections.observableArrayList(formatDiff(diff)));
             setBusy(false, "準備完了");
         }, this::handleOperationFailure, "差分の取得");
@@ -506,14 +523,14 @@ public final class GitGuiWindowsApp extends Application {
     private void stageSelected() {
         FileChange selected = changesTable.getSelectionModel().getSelectedItem();
         if (selected != null) {
-            runOperation(() -> gitService.stage(appState.repository(), selected.path()), "ステージ");
+            runOperation(() -> changeService.stage(appState.repository(), selected.path()), "ステージ");
         }
     }
 
     private void unstageSelected() {
         FileChange selected = changesTable.getSelectionModel().getSelectedItem();
         if (selected != null) {
-            runOperation(() -> gitService.unstage(appState.repository(), selected.path()), "アンステージ");
+            runOperation(() -> changeService.unstage(appState.repository(), selected.path()), "アンステージ");
         }
     }
 
@@ -522,7 +539,7 @@ public final class GitGuiWindowsApp extends Application {
             showError("コミット", "コミットメッセージを入力してください。");
             return;
         }
-        runOperation(() -> gitService.commit(appState.repository(), commitMessage.getText()),
+        runOperation(() -> commitService.commit(appState.repository(), commitMessage.getText()),
                 "コミット");
         commitMessage.clear();
     }
@@ -534,10 +551,10 @@ public final class GitGuiWindowsApp extends Application {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("新規ブランチ");
         dialog.setHeaderText("作成するブランチ名");
-        styleDialog(dialog);
+        themeService.styleDialog(dialog, settings.isDarkMode());
         Optional<String> name = dialog.showAndWait();
         if (name.isPresent() && !name.get().isBlank()) {
-            runOperation(() -> gitService.createBranch(appState.repository(), name.get()), "ブランチ作成");
+            runOperation(() -> branchService.create(appState.repository(), name.get()), "ブランチ作成");
         }
     }
 
@@ -550,12 +567,12 @@ public final class GitGuiWindowsApp extends Application {
                 alert.setHeaderText("未コミットの変更があります。");
                 alert.setContentText("変更を保持したままブランチを切り替えますか？");
                 alert.getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
-                styleDialog(alert);
+                themeService.styleDialog(alert, settings.isDarkMode());
                 if (alert.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) {
                     return;
                 }
             }
-            runOperation(() -> gitService.checkout(appState.repository(), selected.name()), "ブランチ切替");
+            runOperation(() -> branchService.checkout(appState.repository(), selected.name()), "ブランチ切替");
         }
     }
 
@@ -568,9 +585,9 @@ public final class GitGuiWindowsApp extends Application {
         alert.setTitle("ブランチ削除");
         alert.setHeaderText("ブランチ「" + selected.name() + "」を削除しますか？");
         alert.setContentText("マージ済みブランチのみ安全に削除できます。");
-        styleDialog(alert);
+        themeService.styleDialog(alert, settings.isDarkMode());
         if (alert.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
-            runOperation(() -> gitService.deleteBranch(appState.repository(), selected.name()), "ブランチ削除");
+            runOperation(() -> branchService.delete(appState.repository(), selected.name()), "ブランチ削除");
         }
     }
 
@@ -609,17 +626,8 @@ public final class GitGuiWindowsApp extends Application {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message == null || message.isBlank() ? "操作に失敗しました。" : message);
-        styleDialog(alert);
+        themeService.styleDialog(alert, settings.isDarkMode());
         alert.showAndWait();
-    }
-
-    private void styleDialog(Dialog<?> dialog) {
-        if (!settings.isDarkMode()) {
-            return;
-        }
-        String stylesheet = GitGuiWindowsApp.class.getResource("/styles.css").toExternalForm();
-        dialog.getDialogPane().getStylesheets().add(stylesheet);
-        dialog.getDialogPane().getStyleClass().add("dark");
     }
 
     private void toggleTheme() {
@@ -630,15 +638,9 @@ public final class GitGuiWindowsApp extends Application {
     }
 
     private void applyTheme(boolean darkMode) {
-        if (root == null) {
-            return;
+        if (root != null) {
+            themeService.apply(root, themeButton, darkMode);
         }
-        root.getStyleClass().remove("dark");
-        if (darkMode) {
-            root.getStyleClass().add("dark");
-        }
-        themeButton.setText(darkMode ? "☾" : "☀");
-        themeButton.setAccessibleText(darkMode ? "ライトモードに切り替え" : "ダークモードに切り替え");
     }
 
     private void saveSettings() {
@@ -650,7 +652,7 @@ public final class GitGuiWindowsApp extends Application {
         settings.setWindowX(stage.getX());
         settings.setWindowY(stage.getY());
         try {
-            settings.save();
+            settingsRepository.save(settings);
         } catch (IOException e) {
             LOGGER.log(Level.WARNING, "設定の保存に失敗しました。", e);
         }
