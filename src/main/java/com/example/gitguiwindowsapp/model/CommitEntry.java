@@ -7,6 +7,7 @@ public record CommitEntry(
         String id,
         String shortId,
         String subject,
+        String message,
         String authorName,
         String authorEmail,
         OffsetDateTime committedAt,

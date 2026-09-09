@@ -146,7 +146,7 @@ public final class GitService {
                 referenceResult.standardOutput(), headBranch, headId);
         GitCommandResult commitResult = execute(root, "Read commit history",
                 List.of("log", "--all", "--max-count=500", "--date=iso-strict",
-                        "--format=%H\u001f%h\u001f%an\u001f%ae\u001f%aI\u001f%P\u001f%s\u001e"));
+                        "--format=%H\u001f%h\u001f%an\u001f%ae\u001f%aI\u001f%P\u001f%s\u001f%B\u001e"));
         return commitParser.parseCommits(commitResult.standardOutput(), references);
     }
 

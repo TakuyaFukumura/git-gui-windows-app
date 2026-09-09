@@ -24,7 +24,7 @@ final class GitCommitParser {
                 continue;
             }
             String[] fields = record.split(FIELD_SEPARATOR, -1);
-            if (fields.length != 7 || fields[0].isBlank() || fields[4].isBlank()) {
+            if (fields.length != 8 || fields[0].isBlank() || fields[4].isBlank()) {
                 throw new IllegalArgumentException("Invalid commit history record.");
             }
             OffsetDateTime committedAt;
@@ -35,7 +35,7 @@ final class GitCommitParser {
             }
             rawCommits.add(new RawCommit(fields[0], fields[1], fields[2], fields[3],
                     committedAt, fields[5].isBlank() ? List.of() : List.of(fields[5].split(" ")),
-                    fields[6]));
+                    fields[6], fields[7]));
         }
         return addGraph(rawCommits, references);
     }
@@ -88,7 +88,7 @@ final class GitCommitParser {
             }
             List<GraphSegment> graph = graphFor(commit, lanes, lane);
             entries.add(new CommitEntry(commit.id(), commit.shortId(), commit.subject(),
-                    commit.authorName(), commit.authorEmail(), commit.committedAt(),
+                    commit.message(), commit.authorName(), commit.authorEmail(), commit.committedAt(),
                     commit.parents(), references.getOrDefault(commit.id(), List.of()), graph));
             lanes.remove(lane);
             for (int index = commit.parents().size() - 1; index >= 0; index--) {
@@ -130,6 +130,7 @@ final class GitCommitParser {
             String authorEmail,
             OffsetDateTime committedAt,
             List<String> parents,
-            String subject) {
+            String subject,
+            String message) {
     }
 }
