@@ -1,6 +1,8 @@
 package com.example.gitguiwindowsapp.git;
 
 import com.example.gitguiwindowsapp.model.BranchInfo;
+import com.example.gitguiwindowsapp.model.CommitEntry;
+import com.example.gitguiwindowsapp.model.CommitReference;
 import com.example.gitguiwindowsapp.model.DiffDocument;
 import com.example.gitguiwindowsapp.model.FileChange;
 import com.example.gitguiwindowsapp.model.GitOperationResult;
@@ -12,6 +14,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -24,6 +27,7 @@ public final class GitService {
     private final GitStatusParser statusParser;
     private final GitDiffParser diffParser;
     private final GitBranchParser branchParser;
+    private final GitCommitParser commitParser;
 
     public GitService() {
         this(new GitCommandRunner());
@@ -34,6 +38,7 @@ public final class GitService {
         statusParser = new GitStatusParser();
         diffParser = new GitDiffParser();
         branchParser = new GitBranchParser();
+        commitParser = new GitCommitParser();
     }
 
     public String gitVersion() throws GitCommandException {
@@ -128,12 +133,21 @@ public final class GitService {
                 .toList();
     }
 
-    public List<String> commitGraph(Path directory) throws GitCommandException {
+    public List<CommitEntry> commitHistory(Path directory) throws GitCommandException {
         Path root = validateRepository(directory);
-        GitCommandResult result = execute(root, "Read commit history",
-                List.of("log", "--graph", "--all", "--decorate", "--date=short",
-                        "--pretty=format:%h%x09%ad%x09%an%x09%s"));
-        return result.standardOutput().lines().toList();
+        GitCommandResult headResult = runnerCall(root, List.of("rev-parse", "--verify", "HEAD"));
+        String headId = headResult.succeeded() ? headResult.standardOutput().trim() : "";
+        GitCommandResult branchResult = runnerCall(root, List.of("symbolic-ref", "--short", "-q", "HEAD"));
+        String headBranch = branchResult.succeeded() ? branchResult.standardOutput().trim() : "";
+        GitCommandResult referenceResult = execute(root, "Read commit references",
+                List.of("for-each-ref", "--format=%(refname)\u001f%(objectname)",
+                        "refs/heads", "refs/remotes", "refs/tags"));
+        Map<String, List<CommitReference>> references = commitParser.parseReferences(
+                referenceResult.standardOutput(), headBranch, headId);
+        GitCommandResult commitResult = execute(root, "Read commit history",
+                List.of("log", "--all", "--max-count=500", "--date=iso-strict",
+                        "--format=%H\u001f%h\u001f%an\u001f%ae\u001f%aI\u001f%P\u001f%s\u001f%B\u001e"));
+        return commitParser.parseCommits(commitResult.standardOutput(), references);
     }
 
     public GitOperationResult createBranch(Path directory, String name) throws GitCommandException {

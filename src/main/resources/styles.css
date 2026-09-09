@@ -185,14 +185,111 @@
     -fx-font-size: 13px;
 }
 
+.history-toolbar {
+    -fx-padding: 2px 0 0 0;
+    -fx-alignment: center-left;
+}
+
+.history-toolbar .label {
+    -fx-font-weight: bold;
+}
+
 .history-view .list-cell {
-    -fx-padding: 4px 8px;
+    -fx-padding: 3px 8px;
     -fx-background-color: transparent;
     -fx-text-fill: #24292f;
 }
 
 .history-view .list-cell:filled:hover {
     -fx-background-color: #f3f4f6;
+}
+
+.commit-details {
+    -fx-background-color: #ffffff;
+}
+
+.commit-detail-title {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+.commit-detail-label {
+    -fx-font-size: 11px;
+    -fx-text-fill: #6e7781;
+}
+
+.commit-detail-value {
+    -fx-wrap-text: true;
+}
+
+.commit-detail-message {
+    -fx-font-family: "Segoe UI", sans-serif;
+    -fx-background-color: #f6f8fa;
+    -fx-border-color: #d0d7de;
+    -fx-text-fill: #24292f;
+}
+
+.commit-detail-message .content {
+    -fx-background-color: #f6f8fa;
+}
+
+.commit-graph {
+    -fx-background-color: transparent;
+}
+
+.graph-line {
+    -fx-stroke: #8c959f;
+    -fx-stroke-width: 2;
+}
+
+.graph-line-current {
+    -fx-stroke: #d29922;
+    -fx-stroke-width: 2.5;
+}
+
+.graph-node {
+    -fx-fill: #ffffff;
+    -fx-stroke: #0969da;
+    -fx-stroke-width: 2;
+}
+
+.commit-references {
+    -fx-alignment: center-left;
+}
+
+.commit-reference {
+    -fx-padding: 2px 5px;
+    -fx-background-radius: 4px;
+    -fx-font-size: 11px;
+}
+
+.commit-reference-head {
+    -fx-background-color: #fff8c5;
+    -fx-text-fill: #9a6700;
+}
+
+.commit-reference-branch {
+    -fx-background-color: #ddf4ff;
+    -fx-text-fill: #0969da;
+}
+
+.commit-reference-remote {
+    -fx-background-color: #f6f8fa;
+    -fx-text-fill: #57606a;
+}
+
+.commit-reference-tag {
+    -fx-background-color: #fbefff;
+    -fx-text-fill: #8250df;
+}
+
+.commit-subject {
+    -fx-text-fill: #24292f;
+}
+
+.commit-metadata {
+    -fx-text-fill: #6e7781;
+    -fx-font-size: 11px;
 }
 
 .diff-view .list-cell {
@@ -243,6 +340,70 @@
 
 .dark .history-view .list-cell:filled:hover {
     -fx-background-color: #21262d;
+}
+
+.dark .commit-details {
+    -fx-background-color: #161b22;
+}
+
+.dark .commit-detail-label {
+    -fx-text-fill: #8b949e;
+}
+
+.dark .commit-detail-message {
+    -fx-background-color: #21262d;
+    -fx-border-color: #30363d;
+    -fx-text-fill: #e6edf3;
+}
+
+.dark .commit-detail-message .content {
+    -fx-background-color: #21262d;
+}
+
+.dark .commit-detail-message .scroll-pane,
+.dark .commit-detail-message .viewport {
+    -fx-background-color: #21262d;
+}
+
+.dark .graph-line {
+    -fx-stroke: #8b949e;
+}
+
+.dark .graph-line-current {
+    -fx-stroke: #d29922;
+}
+
+.dark .graph-node {
+    -fx-fill: #161b22;
+    -fx-stroke: #58a6ff;
+}
+
+.dark .commit-reference-head {
+    -fx-background-color: #3d2e00;
+    -fx-text-fill: #e3b341;
+}
+
+.dark .commit-reference-branch {
+    -fx-background-color: #10233d;
+    -fx-text-fill: #58a6ff;
+}
+
+.dark .commit-reference-remote {
+    -fx-background-color: #21262d;
+    -fx-text-fill: #8b949e;
+}
+
+.dark .commit-reference-tag {
+    -fx-background-color: #271d38;
+    -fx-text-fill: #d2a8ff;
+}
+
+.dark .commit-subject {
+    -fx-text-fill: #e6edf3;
+}
+
+.dark .commit-metadata {
+    -fx-text-fill: #8b949e;
 }
 
 .dark .diff-view .list-cell.diff-addition {

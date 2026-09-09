@@ -5,12 +5,16 @@ import com.example.gitguiwindowsapp.git.GitCommandException;
 import com.example.gitguiwindowsapp.git.GitCommandRunner;
 import com.example.gitguiwindowsapp.git.GitService;
 import com.example.gitguiwindowsapp.model.BranchInfo;
+import com.example.gitguiwindowsapp.model.CommitEntry;
+import com.example.gitguiwindowsapp.model.CommitReference;
+import com.example.gitguiwindowsapp.model.CommitReferenceType;
 import com.example.gitguiwindowsapp.model.DiffDocument;
 import com.example.gitguiwindowsapp.model.DiffLine;
 import com.example.gitguiwindowsapp.model.DiffLineType;
 import com.example.gitguiwindowsapp.model.FileChange;
 import com.example.gitguiwindowsapp.model.GitOperationResult;
 import com.example.gitguiwindowsapp.model.RepositoryInfo;
+import com.example.gitguiwindowsapp.ui.CommitGraphView;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
@@ -26,6 +30,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.Tooltip;
@@ -45,7 +50,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -62,7 +69,15 @@ public final class GitGuiWindowsApp extends Application {
     private RepositoryInfo repositoryInfo;
     private final TableView<FileChange> changesTable = new TableView<>();
     private final ListView<DiffLine> diffView = new ListView<>();
-    private final ListView<String> historyView = new ListView<>();
+    private final ListView<CommitEntry> historyView = new ListView<>();
+    private final TextField historySearchField = new TextField();
+    private List<CommitEntry> historyEntries = List.of();
+    private final Label commitDetailId = new Label();
+    private final Label commitDetailAuthor = new Label();
+    private final Label commitDetailDate = new Label();
+    private final Label commitDetailParents = new Label();
+    private final Label commitDetailReferences = new Label();
+    private final TextArea commitDetailMessage = new TextArea();
     private final TextField repositoryField = new TextField();
     private final TextField commitMessage = new TextField();
     private final ComboBox<BranchInfo> branchBox = new ComboBox<>();
@@ -78,6 +93,35 @@ public final class GitGuiWindowsApp extends Application {
 
     public static void main(String[] args) {
         launch(args);
+    }
+
+    private HBox createHistoryToolbar() {
+        Label searchLabel = new Label("履歴検索");
+        historySearchField.setPromptText("メッセージ、作者、参照を検索");
+        historySearchField.setTooltip(new Tooltip("コミットメッセージ、作者、参照名を検索"));
+        historySearchField.textProperty().addListener((observable, oldValue, newValue) ->
+                applyHistoryFilter(newValue));
+        HBox.setHgrow(historySearchField, Priority.ALWAYS);
+        HBox toolbar = new HBox(8, searchLabel, historySearchField);
+        toolbar.getStyleClass().add("history-toolbar");
+        return toolbar;
+    }
+
+    private void applyHistoryFilter(String query) {
+        String normalized = query == null ? "" : query.trim().toLowerCase(Locale.ROOT);
+        List<CommitEntry> filtered = historyEntries.stream()
+                .filter(entry -> normalized.isBlank() || matchesHistoryQuery(entry, normalized))
+                .toList();
+        historyView.setItems(FXCollections.observableArrayList(filtered));
+    }
+
+    private static boolean matchesHistoryQuery(CommitEntry entry, String query) {
+        return entry.subject().toLowerCase(Locale.ROOT).contains(query)
+                || entry.message().toLowerCase(Locale.ROOT).contains(query)
+                || entry.authorName().toLowerCase(Locale.ROOT).contains(query)
+                || entry.authorEmail().toLowerCase(Locale.ROOT).contains(query)
+                || entry.references().stream()
+                .anyMatch(reference -> reference.name().toLowerCase(Locale.ROOT).contains(query));
     }
 
     @Override
@@ -188,16 +232,29 @@ public final class GitGuiWindowsApp extends Application {
 
         historyView.getStyleClass().add("history-view");
         historyView.setPlaceholder(new Label("コミット履歴はありません"));
+        historyView.setFixedCellSize(42);
+        historyView.getSelectionModel().selectedItemProperty()
+                .addListener((observable, oldValue, newValue) -> showCommitDetails(newValue));
         historyView.setCellFactory(view -> new ListCell<>() {
             @Override
-            protected void updateItem(String line, boolean empty) {
-                super.updateItem(line, empty);
-                setText(empty ? null : line);
+            protected void updateItem(CommitEntry entry, boolean empty) {
+                super.updateItem(entry, empty);
+                if (empty || entry == null) {
+                    setText(null);
+                    setGraphic(null);
+                    return;
+                }
+                setText(null);
+                setGraphic(createCommitRow(entry));
             }
         });
         historyRefreshButton.setDisable(true);
         historyRefreshButton.setOnAction(event -> refreshHistory());
-        Tab historyTab = new Tab("履歴", historyView);
+        SplitPane historySplit = new SplitPane(historyView, createCommitDetails());
+        historySplit.setDividerPositions(0.7);
+        VBox historyContent = new VBox(8, createHistoryToolbar(), historySplit);
+        VBox.setVgrow(historySplit, Priority.ALWAYS);
+        Tab historyTab = new Tab("履歴", historyContent);
         historyTab.setClosable(false);
         TabPane tabs = new TabPane(changesTab, historyTab);
         tabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
@@ -301,14 +358,103 @@ public final class GitGuiWindowsApp extends Application {
 
     private void refreshHistory() {
         if (repository == null) {
+            historyEntries = List.of();
             historyView.getItems().clear();
             return;
         }
         historyRefreshButton.setDisable(true);
-        runAsync(() -> gitService.commitGraph(repository), graph -> {
-            historyView.setItems(FXCollections.observableArrayList(graph));
+        String selectedId = Optional.ofNullable(historyView.getSelectionModel().getSelectedItem())
+                .map(CommitEntry::id).orElse(null);
+        runAsync(() -> gitService.commitHistory(repository), entries -> {
+            historyEntries = List.copyOf(entries);
+            applyHistoryFilter(historySearchField.getText());
+            if (selectedId != null) {
+                historyView.getItems().stream().filter(entry -> entry.id().equals(selectedId)).findFirst()
+                        .ifPresent(entry -> historyView.getSelectionModel().select(entry));
+            }
             historyRefreshButton.setDisable(false);
         }, "コミット履歴の取得");
+    }
+
+    private HBox createCommitRow(CommitEntry entry) {
+        CommitGraphView graph = new CommitGraphView(entry);
+        HBox.setHgrow(graph, Priority.NEVER);
+
+        HBox references = new HBox(4);
+        references.getStyleClass().add("commit-references");
+        for (CommitReference reference : entry.references()) {
+            Label badge = new Label(reference.name());
+            badge.getStyleClass().add("commit-reference");
+            badge.getStyleClass().add(referenceClass(reference.type()));
+            badge.setTooltip(new Tooltip(reference.name()));
+            references.getChildren().add(badge);
+        }
+
+        references.setMaxWidth(260);
+
+        Label subject = new Label(entry.subject());
+        subject.getStyleClass().add("commit-subject");
+        subject.setTextOverrun(javafx.scene.control.OverrunStyle.ELLIPSIS);
+        subject.setTooltip(new Tooltip(entry.subject()));
+        HBox.setHgrow(subject, Priority.ALWAYS);
+
+        Label metadata = new Label(entry.shortId() + "  " + entry.authorName() + "  "
+                + DateTimeFormatter.ISO_LOCAL_DATE.format(entry.committedAt()));
+        metadata.getStyleClass().add("commit-metadata");
+        return new HBox(8, graph, references, subject, metadata);
+    }
+
+    private VBox createCommitDetails() {
+        Label title = new Label("コミット詳細");
+        title.getStyleClass().add("commit-detail-title");
+        commitDetailMessage.setEditable(false);
+        commitDetailMessage.setWrapText(true);
+        commitDetailMessage.setPrefRowCount(8);
+        commitDetailMessage.setPromptText("コミットを選択してください");
+        commitDetailMessage.getStyleClass().add("commit-detail-message");
+        commitDetailId.getStyleClass().add("commit-detail-value");
+        commitDetailAuthor.getStyleClass().add("commit-detail-value");
+        commitDetailDate.getStyleClass().add("commit-detail-value");
+        commitDetailParents.getStyleClass().add("commit-detail-value");
+        commitDetailReferences.getStyleClass().add("commit-detail-value");
+        VBox details = new VBox(8, title,
+                detailLine("ID", commitDetailId),
+                detailLine("作者", commitDetailAuthor),
+                detailLine("日時", commitDetailDate),
+                detailLine("親", commitDetailParents),
+                detailLine("参照", commitDetailReferences),
+                commitDetailMessage);
+        details.getStyleClass().add("commit-details");
+        details.setPadding(new Insets(10));
+        showCommitDetails(null);
+        return details;
+    }
+
+    private static VBox detailLine(String name, Label value) {
+        Label label = new Label(name);
+        label.getStyleClass().add("commit-detail-label");
+        return new VBox(2, label, value);
+    }
+
+    private void showCommitDetails(CommitEntry entry) {
+        boolean empty = entry == null;
+        commitDetailId.setText(empty ? "" : entry.id());
+        commitDetailAuthor.setText(empty ? "" : entry.authorName() + " <" + entry.authorEmail() + ">");
+        commitDetailDate.setText(empty ? "" : entry.committedAt().toString());
+        commitDetailParents.setText(empty ? "" : entry.parents().isEmpty()
+                ? "なし" : String.join(", ", entry.parents()));
+        commitDetailReferences.setText(empty ? "" : entry.references().isEmpty()
+                ? "なし" : entry.references().stream().map(CommitReference::name).toList().toString());
+        commitDetailMessage.setText(empty ? "" : entry.message());
+    }
+
+    private static String referenceClass(CommitReferenceType type) {
+        return switch (type) {
+            case HEAD -> "commit-reference-head";
+            case LOCAL_BRANCH -> "commit-reference-branch";
+            case REMOTE_BRANCH -> "commit-reference-remote";
+            case TAG -> "commit-reference-tag";
+        };
     }
 
     private void showDiff(FileChange change) {
