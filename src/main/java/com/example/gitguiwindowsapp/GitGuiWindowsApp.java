@@ -60,7 +60,7 @@ import java.util.logging.Logger;
 
 public final class GitGuiWindowsApp extends Application {
     private static final Logger LOGGER = Logger.getLogger(GitGuiWindowsApp.class.getName());
-    private static final String APP_VERSION = "0.7.0";
+    private static final String APP_VERSION = "0.8.1";
 
     private ApplicationSettings settings;
     private GitService gitService;
