@@ -185,6 +185,15 @@
     -fx-font-size: 13px;
 }
 
+.history-toolbar {
+    -fx-padding: 2px 0 0 0;
+    -fx-alignment: center-left;
+}
+
+.history-toolbar .label {
+    -fx-font-weight: bold;
+}
+
 .history-view .list-cell {
     -fx-padding: 3px 8px;
     -fx-background-color: transparent;

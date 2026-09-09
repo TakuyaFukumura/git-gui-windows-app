@@ -50,6 +50,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.Callable;
@@ -69,6 +70,8 @@ public final class GitGuiWindowsApp extends Application {
     private final TableView<FileChange> changesTable = new TableView<>();
     private final ListView<DiffLine> diffView = new ListView<>();
     private final ListView<CommitEntry> historyView = new ListView<>();
+    private final TextField historySearchField = new TextField();
+    private List<CommitEntry> historyEntries = List.of();
     private final Label commitDetailId = new Label();
     private final Label commitDetailAuthor = new Label();
     private final Label commitDetailDate = new Label();
@@ -90,6 +93,35 @@ public final class GitGuiWindowsApp extends Application {
 
     public static void main(String[] args) {
         launch(args);
+    }
+
+    private HBox createHistoryToolbar() {
+        Label searchLabel = new Label("履歴検索");
+        historySearchField.setPromptText("メッセージ、作者、参照を検索");
+        historySearchField.setTooltip(new Tooltip("コミットメッセージ、作者、参照名を検索"));
+        historySearchField.textProperty().addListener((observable, oldValue, newValue) ->
+                applyHistoryFilter(newValue));
+        HBox.setHgrow(historySearchField, Priority.ALWAYS);
+        HBox toolbar = new HBox(8, searchLabel, historySearchField);
+        toolbar.getStyleClass().add("history-toolbar");
+        return toolbar;
+    }
+
+    private void applyHistoryFilter(String query) {
+        String normalized = query == null ? "" : query.trim().toLowerCase(Locale.ROOT);
+        List<CommitEntry> filtered = historyEntries.stream()
+                .filter(entry -> normalized.isBlank() || matchesHistoryQuery(entry, normalized))
+                .toList();
+        historyView.setItems(FXCollections.observableArrayList(filtered));
+    }
+
+    private static boolean matchesHistoryQuery(CommitEntry entry, String query) {
+        return entry.subject().toLowerCase(Locale.ROOT).contains(query)
+                || entry.message().toLowerCase(Locale.ROOT).contains(query)
+                || entry.authorName().toLowerCase(Locale.ROOT).contains(query)
+                || entry.authorEmail().toLowerCase(Locale.ROOT).contains(query)
+                || entry.references().stream()
+                .anyMatch(reference -> reference.name().toLowerCase(Locale.ROOT).contains(query));
     }
 
     @Override
@@ -220,7 +252,9 @@ public final class GitGuiWindowsApp extends Application {
         historyRefreshButton.setOnAction(event -> refreshHistory());
         SplitPane historySplit = new SplitPane(historyView, createCommitDetails());
         historySplit.setDividerPositions(0.7);
-        Tab historyTab = new Tab("履歴", historySplit);
+        VBox historyContent = new VBox(8, createHistoryToolbar(), historySplit);
+        VBox.setVgrow(historySplit, Priority.ALWAYS);
+        Tab historyTab = new Tab("履歴", historyContent);
         historyTab.setClosable(false);
         TabPane tabs = new TabPane(changesTab, historyTab);
         tabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
@@ -324,6 +358,7 @@ public final class GitGuiWindowsApp extends Application {
 
     private void refreshHistory() {
         if (repository == null) {
+            historyEntries = List.of();
             historyView.getItems().clear();
             return;
         }
@@ -331,9 +366,10 @@ public final class GitGuiWindowsApp extends Application {
         String selectedId = Optional.ofNullable(historyView.getSelectionModel().getSelectedItem())
                 .map(CommitEntry::id).orElse(null);
         runAsync(() -> gitService.commitHistory(repository), entries -> {
-            historyView.setItems(FXCollections.observableArrayList(entries));
+            historyEntries = List.copyOf(entries);
+            applyHistoryFilter(historySearchField.getText());
             if (selectedId != null) {
-                entries.stream().filter(entry -> entry.id().equals(selectedId)).findFirst()
+                historyView.getItems().stream().filter(entry -> entry.id().equals(selectedId)).findFirst()
                         .ifPresent(entry -> historyView.getSelectionModel().select(entry));
             }
             historyRefreshButton.setDisable(false);
