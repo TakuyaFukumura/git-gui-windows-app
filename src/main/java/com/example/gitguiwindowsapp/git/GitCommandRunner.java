@@ -10,11 +10,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 /**
  * Executes Git without invoking a shell. Paths and user input therefore remain
@@ -39,6 +35,12 @@ public final class GitCommandRunner implements GitCommandExecutor {
     public GitCommandRunner(String executable, Charset charset) {
         this.executable = Objects.requireNonNull(executable, "executable");
         this.charset = Objects.requireNonNull(charset, "charset");
+    }
+
+    private static byte[] readAll(InputStream stream) throws IOException {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        stream.transferTo(output);
+        return output.toByteArray();
     }
 
     public String executable() {
@@ -90,11 +92,5 @@ public final class GitCommandRunner implements GitCommandExecutor {
             }
             throw new IOException("Unable to read Git output.", cause);
         }
-    }
-
-    private static byte[] readAll(InputStream stream) throws IOException {
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        stream.transferTo(output);
-        return output.toByteArray();
     }
 }

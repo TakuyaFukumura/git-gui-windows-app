@@ -18,6 +18,13 @@ final class GitCommandSupport {
         this.runner = Objects.requireNonNull(runner, "runner");
     }
 
+    static String requirePath(String path) {
+        if (path == null || path.isBlank()) {
+            throw new IllegalArgumentException("Path must not be blank.");
+        }
+        return path;
+    }
+
     Path validateRepository(Path directory) throws GitCommandException {
         Path candidate = Objects.requireNonNull(directory, "directory").toAbsolutePath().normalize();
         if (!Files.isDirectory(candidate)) {
@@ -60,13 +67,6 @@ final class GitCommandSupport {
         GitCommandResult result = execute(root, operation, arguments);
         return new GitOperationResult(result.succeeded(), result.exitCode(),
                 result.standardOutput(), result.standardError());
-    }
-
-    static String requirePath(String path) {
-        if (path == null || path.isBlank()) {
-            throw new IllegalArgumentException("Path must not be blank.");
-        }
-        return path;
     }
 
     void validateBranchName(Path repository, String name) throws GitCommandException {

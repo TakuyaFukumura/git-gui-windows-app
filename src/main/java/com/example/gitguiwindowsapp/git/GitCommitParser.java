@@ -1,10 +1,6 @@
 package com.example.gitguiwindowsapp.git;
 
-import com.example.gitguiwindowsapp.model.CommitEntry;
-import com.example.gitguiwindowsapp.model.CommitReference;
-import com.example.gitguiwindowsapp.model.CommitReferenceType;
-import com.example.gitguiwindowsapp.model.GraphSegment;
-import com.example.gitguiwindowsapp.model.GraphSegmentKind;
+import com.example.gitguiwindowsapp.model.*;
 
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
@@ -16,6 +12,11 @@ import java.util.Map;
 final class GitCommitParser {
     private static final String FIELD_SEPARATOR = "\u001f";
     private static final String RECORD_SEPARATOR = "\u001e";
+
+    private static void addReference(Map<String, List<CommitReference>> references,
+                                     String commitId, CommitReference reference) {
+        references.computeIfAbsent(commitId, ignored -> new ArrayList<>()).add(reference);
+    }
 
     /**
      * Parses records emitted by {@code git log --format} using control
@@ -51,7 +52,7 @@ final class GitCommitParser {
     }
 
     Map<String, List<CommitReference>> parseReferences(String output, String headBranch,
-                                                        String headId) {
+                                                       String headId) {
         Map<String, List<CommitReference>> references = new HashMap<>();
         if (!headId.isBlank()) {
             addReference(references, headId, new CommitReference("HEAD",
@@ -129,11 +130,6 @@ final class GitCommitParser {
             graph.add(new GraphSegment(lane, lane, targetLane, kind, true));
         }
         return graph;
-    }
-
-    private static void addReference(Map<String, List<CommitReference>> references,
-                                     String commitId, CommitReference reference) {
-        references.computeIfAbsent(commitId, ignored -> new ArrayList<>()).add(reference);
     }
 
     private record RawCommit(

@@ -2,16 +2,44 @@ package com.example.gitguiwindowsapp.git;
 
 import org.junit.jupiter.api.Test;
 
-import java.nio.file.attribute.DosFileAttributeView;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.DosFileAttributeView;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class GitServiceTest {
+    private static void deleteTree(Path directory) throws Exception {
+        if (Files.exists(directory)) {
+            try (var paths = Files.walk(directory)) {
+                paths.sorted(java.util.Comparator.reverseOrder()).forEach(path -> {
+                    for (int attempt = 0; attempt < 5; attempt++) {
+                        try {
+                            DosFileAttributeView attributes =
+                                    Files.getFileAttributeView(path, DosFileAttributeView.class);
+                            if (attributes != null) {
+                                attributes.setReadOnly(false);
+                            }
+                            Files.deleteIfExists(path);
+                            return;
+                        } catch (java.io.IOException e) {
+                            if (attempt == 4) {
+                                throw new RuntimeException(e);
+                            }
+                            try {
+                                Thread.sleep(100);
+                            } catch (InterruptedException interrupted) {
+                                Thread.currentThread().interrupt();
+                                throw new RuntimeException(interrupted);
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    }
+
     @Test
     void validatesRepositoryAndReturnsItsRoot() throws Exception {
         Path directory = Files.createTempDirectory("git-service");
@@ -197,36 +225,6 @@ class GitServiceTest {
                             && reference.name().equals("v1.0.0")));
         } finally {
             deleteTree(directory);
-        }
-    }
-
-    private static void deleteTree(Path directory) throws Exception {
-        if (Files.exists(directory)) {
-            try (var paths = Files.walk(directory)) {
-                paths.sorted(java.util.Comparator.reverseOrder()).forEach(path -> {
-                    for (int attempt = 0; attempt < 5; attempt++) {
-                        try {
-                            DosFileAttributeView attributes =
-                                    Files.getFileAttributeView(path, DosFileAttributeView.class);
-                            if (attributes != null) {
-                                attributes.setReadOnly(false);
-                            }
-                            Files.deleteIfExists(path);
-                            return;
-                        } catch (java.io.IOException e) {
-                            if (attempt == 4) {
-                                throw new RuntimeException(e);
-                            }
-                            try {
-                                Thread.sleep(100);
-                            } catch (InterruptedException interrupted) {
-                                Thread.currentThread().interrupt();
-                                throw new RuntimeException(interrupted);
-                            }
-                        }
-                    }
-                });
-            }
         }
     }
 }

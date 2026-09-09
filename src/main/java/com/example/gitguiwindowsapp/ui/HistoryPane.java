@@ -3,16 +3,9 @@ package com.example.gitguiwindowsapp.ui;
 import com.example.gitguiwindowsapp.model.CommitEntry;
 import com.example.gitguiwindowsapp.model.CommitReference;
 import com.example.gitguiwindowsapp.model.CommitReferenceType;
-import com.example.gitguiwindowsapp.ui.CommitGraphView;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
-import javafx.scene.control.SplitPane;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -94,6 +87,19 @@ public final class HistoryPane {
         view = new VBox(8, toolbar, split);
     }
 
+    private static VBox detailLine(String name, Label value) {
+        return new VBox(2, new Label(name), value);
+    }
+
+    private static String referenceClass(CommitReferenceType type) {
+        return switch (type) {
+            case HEAD -> "commit-reference-head";
+            case LOCAL_BRANCH -> "commit-reference-branch";
+            case REMOTE_BRANCH -> "commit-reference-remote";
+            case TAG -> "commit-reference-tag";
+        };
+    }
+
     private VBox createDetails() {
         Label title = new Label("コミット詳細");
         title.getStyleClass().add("commit-detail-title");
@@ -110,10 +116,6 @@ public final class HistoryPane {
         details.getStyleClass().add("commit-details");
         details.setPadding(new Insets(10));
         return details;
-    }
-
-    private static VBox detailLine(String name, Label value) {
-        return new VBox(2, new Label(name), value);
     }
 
     public VBox view() {
@@ -149,14 +151,5 @@ public final class HistoryPane {
         references.setText(empty ? "" : entry.references().isEmpty()
                 ? "なし" : entry.references().stream().map(CommitReference::name).toList().toString());
         message.setText(empty ? "" : entry.message());
-    }
-
-    private static String referenceClass(CommitReferenceType type) {
-        return switch (type) {
-            case HEAD -> "commit-reference-head";
-            case LOCAL_BRANCH -> "commit-reference-branch";
-            case REMOTE_BRANCH -> "commit-reference-remote";
-            case TAG -> "commit-reference-tag";
-        };
     }
 }

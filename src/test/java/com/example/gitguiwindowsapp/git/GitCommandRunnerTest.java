@@ -20,7 +20,7 @@ class GitCommandRunnerTest {
     void servicesAcceptAReplaceableGitExecutionBoundary() throws Exception {
         Path directory = Path.of(".").toAbsolutePath().normalize();
         GitCommandExecutor fake = (workingDirectory, arguments) -> new GitCommandResult(
-                0, directory.toString() + System.lineSeparator(), "", 0);
+                0, directory + System.lineSeparator(), "", 0);
 
         assertEquals(directory.toRealPath(),
                 new RepositoryService(fake).validate(directory));
@@ -29,8 +29,8 @@ class GitCommandRunnerTest {
     @Test
     void sharedFixtureCreatesAConfiguredRepository() throws Exception {
         try (GitRepositoryFixture fixture = GitRepositoryFixture.create()) {
-            assertTrue(fixture.run("rev-parse", "--is-inside-work-tree")
-                    .standardOutput().trim().equals("true"));
+            assertEquals("true", fixture.run("rev-parse", "--is-inside-work-tree")
+                    .standardOutput().trim());
         }
     }
 }

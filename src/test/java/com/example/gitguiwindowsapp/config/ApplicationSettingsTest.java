@@ -5,9 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class ApplicationSettingsTest {
 
@@ -52,7 +50,7 @@ class ApplicationSettingsTest {
 
             ApplicationSettings result = ApplicationSettings.load(file);
 
-            assertEquals(null, result.getOpenBaseDirectory());
+            assertNull(result.getOpenBaseDirectory());
         } finally {
             Files.deleteIfExists(file);
             Files.deleteIfExists(directory);

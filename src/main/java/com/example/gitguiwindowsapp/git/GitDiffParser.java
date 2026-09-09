@@ -1,9 +1,9 @@
 package com.example.gitguiwindowsapp.git;
 
+import com.example.gitguiwindowsapp.model.DiffDocument;
 import com.example.gitguiwindowsapp.model.DiffFile;
 import com.example.gitguiwindowsapp.model.DiffLine;
 import com.example.gitguiwindowsapp.model.DiffLineType;
-import com.example.gitguiwindowsapp.model.DiffDocument;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -11,6 +11,16 @@ import java.util.List;
 
 public final class GitDiffParser {
     public static final int MAX_DIFF_BYTES = 10 * 1024 * 1024;
+
+    private static String stripPrefix(String path) {
+        if ("/dev/null".equals(path)) {
+            return path;
+        }
+        if (path.length() > 2 && (path.startsWith("a/") || path.startsWith("b/"))) {
+            return path.substring(2);
+        }
+        return path;
+    }
 
     /**
      * Parses Git's unified diff output into immutable display-neutral models.
@@ -66,15 +76,5 @@ public final class GitDiffParser {
             files.add(new DiffFile(oldPath, newPath, lines));
         }
         return new DiffDocument(files, source, binary, false);
-    }
-
-    private static String stripPrefix(String path) {
-        if ("/dev/null".equals(path)) {
-            return path;
-        }
-        if (path.length() > 2 && (path.startsWith("a/") || path.startsWith("b/"))) {
-            return path.substring(2);
-        }
-        return path;
     }
 }
