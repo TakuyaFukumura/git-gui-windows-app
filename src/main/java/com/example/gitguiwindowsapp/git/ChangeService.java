@@ -18,7 +18,7 @@ public final class ChangeService {
         this(new GitCommandRunner());
     }
 
-    public ChangeService(GitCommandRunner runner) {
+    public ChangeService(GitCommandExecutor runner) {
         commands = new GitCommandSupport(runner);
     }
 

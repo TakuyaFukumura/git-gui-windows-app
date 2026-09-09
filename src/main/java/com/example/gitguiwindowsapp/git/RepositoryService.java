@@ -16,7 +16,7 @@ public final class RepositoryService {
         this(new GitCommandRunner());
     }
 
-    public RepositoryService(GitCommandRunner runner) {
+    public RepositoryService(GitCommandExecutor runner) {
         commands = new GitCommandSupport(runner);
     }
 

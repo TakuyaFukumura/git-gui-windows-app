@@ -34,6 +34,9 @@ class ApplicationSettingsTest {
             assertEquals(80, result.getWindowY());
             assertEquals(directory.resolve("repositories").toAbsolutePath().normalize(),
                     result.getOpenBaseDirectory());
+            assertEquals(1024, result.windowSettings().width());
+            assertEquals("git", result.gitSettings().executable());
+            assertTrue(result.themeSettings().darkMode());
         } finally {
             Files.deleteIfExists(file);
             Files.deleteIfExists(directory);
@@ -99,6 +102,23 @@ class ApplicationSettingsTest {
     }
 
     @Test
+    void removesDuplicateRecentRepositoriesWhilePreservingNewestOrder() throws Exception {
+        Path directory = Files.createTempDirectory("duplicate-recent-settings");
+        Path file = directory.resolve("settings.properties");
+        try {
+            Files.writeString(file, "recent.repositories=repo-a|repo-b|repo-a|repo-c\n");
+
+            ApplicationSettings result = ApplicationSettings.load(file);
+
+            assertEquals(java.util.List.of("repo-a", "repo-b", "repo-c"),
+                    result.getRecentRepositories());
+        } finally {
+            Files.deleteIfExists(file);
+            Files.deleteIfExists(directory);
+        }
+    }
+
+    @Test
     void propagatesSaveFailureWhenParentPathIsNotDirectory() throws Exception {
         Path directory = Files.createTempDirectory("settings-save-failure");
         Path parentFile = directory.resolve("not-a-directory");
@@ -111,5 +131,18 @@ class ApplicationSettingsTest {
             Files.deleteIfExists(parentFile);
             Files.deleteIfExists(directory);
         }
+    }
+
+    @Test
+    void categoryValueObjectsValidateAndExposeImmutableValues() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new WindowSettings(0, 600, Double.NaN, Double.NaN));
+        assertThrows(IllegalArgumentException.class,
+                () -> new GitSettings(" "));
+
+        RepositorySettings settings = new RepositorySettings(null, java.util.List.of("repo"));
+
+        assertThrows(UnsupportedOperationException.class,
+                () -> settings.recentRepositories().add("other"));
     }
 }

@@ -12,6 +12,14 @@ import java.util.List;
 public final class GitDiffParser {
     public static final int MAX_DIFF_BYTES = 10 * 1024 * 1024;
 
+    /**
+     * Parses Git's unified diff output into immutable display-neutral models.
+     *
+     * <p>Empty input produces an empty document. Binary markers are retained
+     * as metadata, while oversized input is not parsed and is marked
+     * {@code tooLarge}. The original UTF-8 text is retained so the UI can
+     * report Git metadata without putting presentation strings in this parser.</p>
+     */
     public DiffDocument parse(String diff) {
         String source = diff == null ? "" : diff;
         boolean tooLarge = source.getBytes(StandardCharsets.UTF_8).length > MAX_DIFF_BYTES;

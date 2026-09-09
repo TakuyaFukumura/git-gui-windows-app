@@ -20,7 +20,7 @@ import java.util.concurrent.Executors;
  * Executes Git without invoking a shell. Paths and user input therefore remain
  * separate arguments even when they contain spaces or shell metacharacters.
  */
-public final class GitCommandRunner {
+public final class GitCommandRunner implements GitCommandExecutor {
     private final String executable;
     private final Charset charset;
 

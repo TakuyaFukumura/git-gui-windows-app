@@ -40,4 +40,10 @@ class GitStatusParserTest {
         assertThrows(IllegalArgumentException.class,
                 () -> new GitStatusParser().parse("R  renamed.txt\0"));
     }
+
+    @Test
+    void rejectsMalformedTrackingCounts() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new GitStatusParser().parse("## main...origin/main [ahead x]\0"));
+    }
 }

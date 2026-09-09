@@ -16,6 +16,13 @@ import java.util.Properties;
  *
  * <p>設定はユーザーのホームディレクトリ配下にProperties形式で保存します。
  * 未知のキーは無視し、壊れた値は既定値に戻すことで将来の互換性を保ちます。</p>
+ *
+ * <p>設定カテゴリと保存キーは次の対応です。ウィンドウ状態は
+ * {@code window.*}、Git実行ファイルは {@code git.executable}、開く
+ * ダイアログの基準フォルダーは {@code open.baseDirectory}、最近の
+ * リポジトリは {@code recent.repositories}、テーマは {@code darkMode} です。
+ * このクラスはカテゴリ値の検証と、既存ファイル形式の永続化だけを担当し、
+ * JavaFXのテーマ適用は {@code ThemeService} に委譲します。</p>
  */
 public final class ApplicationSettings {
 
@@ -193,6 +200,22 @@ public final class ApplicationSettings {
      */
     public Path getPath() {
         return path;
+    }
+
+    public WindowSettings windowSettings() {
+        return new WindowSettings(windowWidth, windowHeight, windowX, windowY);
+    }
+
+    public GitSettings gitSettings() {
+        return new GitSettings(gitExecutable);
+    }
+
+    public RepositorySettings repositorySettings() {
+        return new RepositorySettings(openBaseDirectory, recentRepositories);
+    }
+
+    public ThemeSettings themeSettings() {
+        return new ThemeSettings(darkMode);
     }
 
     public String getGitExecutable() {

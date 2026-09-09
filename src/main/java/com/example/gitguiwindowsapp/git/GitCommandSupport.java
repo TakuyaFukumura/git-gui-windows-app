@@ -12,9 +12,9 @@ import java.util.Objects;
  * Gitコマンド実行に共通する検証とエラー処理を提供します。
  */
 final class GitCommandSupport {
-    private final GitCommandRunner runner;
+    private final GitCommandExecutor runner;
 
-    GitCommandSupport(GitCommandRunner runner) {
+    GitCommandSupport(GitCommandExecutor runner) {
         this.runner = Objects.requireNonNull(runner, "runner");
     }
 
