@@ -154,11 +154,44 @@ class GitServiceTest {
             runner.run(directory, List.of("add", "file.txt"));
             runner.run(directory, List.of("commit", "-qm", "initial"));
 
-            List<String> graph = new GitService(runner).commitGraph(directory);
+            List<com.example.gitguiwindowsapp.model.CommitEntry> graph =
+                    new GitService(runner).commitHistory(directory);
 
             assertEquals(1, graph.size());
-            assertTrue(graph.get(0).contains("initial"));
-            assertTrue(graph.get(0).startsWith("*"));
+            assertEquals("initial", graph.get(0).subject());
+            assertEquals(40, graph.get(0).id().length());
+            assertTrue(graph.get(0).graph().stream()
+                    .anyMatch(segment -> segment.lane() == 0));
+        } finally {
+            deleteTree(directory);
+        }
+
+    }
+
+    @Test
+    void classifiesCommitReferences() throws Exception {
+        Path directory = Files.createTempDirectory("git-service-commit-references");
+        try {
+            GitCommandRunner runner = new GitCommandRunner();
+            runner.run(directory, List.of("init", "-q"));
+            runner.run(directory, List.of("config", "user.email", "test@example.com"));
+            runner.run(directory, List.of("config", "user.name", "Test User"));
+            Files.writeString(directory.resolve("file.txt"), "one\n");
+            runner.run(directory, List.of("add", "file.txt"));
+            runner.run(directory, List.of("commit", "-qm", "initial"));
+            runner.run(directory, List.of("branch", "feature"));
+            runner.run(directory, List.of("tag", "v1.0.0"));
+
+            var entry = new GitService(runner).commitHistory(directory).get(0);
+
+            assertTrue(entry.references().stream().anyMatch(reference ->
+                    reference.type() == com.example.gitguiwindowsapp.model.CommitReferenceType.HEAD));
+            assertTrue(entry.references().stream().anyMatch(reference ->
+                    reference.type() == com.example.gitguiwindowsapp.model.CommitReferenceType.LOCAL_BRANCH
+                            && reference.name().equals("feature")));
+            assertTrue(entry.references().stream().anyMatch(reference ->
+                    reference.type() == com.example.gitguiwindowsapp.model.CommitReferenceType.TAG
+                            && reference.name().equals("v1.0.0")));
         } finally {
             deleteTree(directory);
         }

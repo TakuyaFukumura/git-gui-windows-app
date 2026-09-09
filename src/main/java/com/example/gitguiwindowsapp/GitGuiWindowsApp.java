@@ -5,12 +5,16 @@ import com.example.gitguiwindowsapp.git.GitCommandException;
 import com.example.gitguiwindowsapp.git.GitCommandRunner;
 import com.example.gitguiwindowsapp.git.GitService;
 import com.example.gitguiwindowsapp.model.BranchInfo;
+import com.example.gitguiwindowsapp.model.CommitEntry;
+import com.example.gitguiwindowsapp.model.CommitReference;
+import com.example.gitguiwindowsapp.model.CommitReferenceType;
 import com.example.gitguiwindowsapp.model.DiffDocument;
 import com.example.gitguiwindowsapp.model.DiffLine;
 import com.example.gitguiwindowsapp.model.DiffLineType;
 import com.example.gitguiwindowsapp.model.FileChange;
 import com.example.gitguiwindowsapp.model.GitOperationResult;
 import com.example.gitguiwindowsapp.model.RepositoryInfo;
+import com.example.gitguiwindowsapp.ui.CommitGraphView;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
@@ -46,6 +50,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -62,7 +67,7 @@ public final class GitGuiWindowsApp extends Application {
     private RepositoryInfo repositoryInfo;
     private final TableView<FileChange> changesTable = new TableView<>();
     private final ListView<DiffLine> diffView = new ListView<>();
-    private final ListView<String> historyView = new ListView<>();
+    private final ListView<CommitEntry> historyView = new ListView<>();
     private final TextField repositoryField = new TextField();
     private final TextField commitMessage = new TextField();
     private final ComboBox<BranchInfo> branchBox = new ComboBox<>();
@@ -188,11 +193,18 @@ public final class GitGuiWindowsApp extends Application {
 
         historyView.getStyleClass().add("history-view");
         historyView.setPlaceholder(new Label("コミット履歴はありません"));
+        historyView.setFixedCellSize(42);
         historyView.setCellFactory(view -> new ListCell<>() {
             @Override
-            protected void updateItem(String line, boolean empty) {
-                super.updateItem(line, empty);
-                setText(empty ? null : line);
+            protected void updateItem(CommitEntry entry, boolean empty) {
+                super.updateItem(entry, empty);
+                if (empty || entry == null) {
+                    setText(null);
+                    setGraphic(null);
+                    return;
+                }
+                setText(null);
+                setGraphic(createCommitRow(entry));
             }
         });
         historyRefreshButton.setDisable(true);
@@ -305,10 +317,52 @@ public final class GitGuiWindowsApp extends Application {
             return;
         }
         historyRefreshButton.setDisable(true);
-        runAsync(() -> gitService.commitGraph(repository), graph -> {
-            historyView.setItems(FXCollections.observableArrayList(graph));
+        String selectedId = Optional.ofNullable(historyView.getSelectionModel().getSelectedItem())
+                .map(CommitEntry::id).orElse(null);
+        runAsync(() -> gitService.commitHistory(repository), entries -> {
+            historyView.setItems(FXCollections.observableArrayList(entries));
+            if (selectedId != null) {
+                entries.stream().filter(entry -> entry.id().equals(selectedId)).findFirst()
+                        .ifPresent(entry -> historyView.getSelectionModel().select(entry));
+            }
             historyRefreshButton.setDisable(false);
         }, "コミット履歴の取得");
+    }
+
+    private HBox createCommitRow(CommitEntry entry) {
+        CommitGraphView graph = new CommitGraphView(entry);
+        HBox.setHgrow(graph, Priority.NEVER);
+
+        HBox references = new HBox(4);
+        references.getStyleClass().add("commit-references");
+        for (CommitReference reference : entry.references()) {
+            Label badge = new Label(reference.name());
+            badge.getStyleClass().add("commit-reference");
+            badge.getStyleClass().add(referenceClass(reference.type()));
+            badge.setTooltip(new Tooltip(reference.name()));
+            references.getChildren().add(badge);
+        }
+        references.setMaxWidth(260);
+
+        Label subject = new Label(entry.subject());
+        subject.getStyleClass().add("commit-subject");
+        subject.setTextOverrun(javafx.scene.control.OverrunStyle.ELLIPSIS);
+        subject.setTooltip(new Tooltip(entry.subject()));
+        HBox.setHgrow(subject, Priority.ALWAYS);
+
+        Label metadata = new Label(entry.shortId() + "  " + entry.authorName() + "  "
+                + DateTimeFormatter.ISO_LOCAL_DATE.format(entry.committedAt()));
+        metadata.getStyleClass().add("commit-metadata");
+        return new HBox(8, graph, references, subject, metadata);
+    }
+
+    private static String referenceClass(CommitReferenceType type) {
+        return switch (type) {
+            case HEAD -> "commit-reference-head";
+            case LOCAL_BRANCH -> "commit-reference-branch";
+            case REMOTE_BRANCH -> "commit-reference-remote";
+            case TAG -> "commit-reference-tag";
+        };
     }
 
     private void showDiff(FileChange change) {
