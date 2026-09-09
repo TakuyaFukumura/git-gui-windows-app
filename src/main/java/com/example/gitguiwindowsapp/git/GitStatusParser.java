@@ -38,7 +38,7 @@ public final class GitStatusParser {
         return staged ? StageState.STAGED : unstaged ? StageState.UNSTAGED : StageState.CLEAN;
     }
 
-    private static FileChangeType typeOf(char x, char y, String path) {
+    private static FileChangeType typeOf(char x, char y) {
         if (x == '?' && y == '?') {
             return FileChangeType.UNTRACKED;
         }
@@ -110,7 +110,7 @@ public final class GitStatusParser {
             char y = entry.charAt(1);
             String path = entry.substring(3);
             String originalPath = null;
-            FileChangeType type = typeOf(x, y, path);
+            FileChangeType type = typeOf(x, y);
             if (type == FileChangeType.RENAMED || type == FileChangeType.COPIED) {
                 if (index >= fields.length || fields[index].isEmpty()) {
                     throw new IllegalArgumentException("Missing original path for rename or copy.");
