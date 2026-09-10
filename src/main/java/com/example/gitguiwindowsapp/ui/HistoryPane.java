@@ -1,5 +1,6 @@
 package com.example.gitguiwindowsapp.ui;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import com.example.gitguiwindowsapp.model.CommitEntry;
 import com.example.gitguiwindowsapp.model.CommitReference;
 import com.example.gitguiwindowsapp.model.CommitReferenceType;
@@ -118,6 +119,8 @@ public final class HistoryPane {
         return details;
     }
 
+    @SuppressFBWarnings(value = "EI_EXPOSE_REP",
+            justification = "The live JavaFX container must be returned for composition into the application scene.")
     public VBox view() {
         return view;
     }

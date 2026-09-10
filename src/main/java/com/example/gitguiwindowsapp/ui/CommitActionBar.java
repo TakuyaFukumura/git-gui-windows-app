@@ -1,5 +1,6 @@
 package com.example.gitguiwindowsapp.ui;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -34,6 +35,8 @@ public final class CommitActionBar {
         view.setPadding(new Insets(10, 0, 0, 0));
     }
 
+    @SuppressFBWarnings(value = "EI_EXPOSE_REP",
+            justification = "The live JavaFX container must be returned for composition into the application scene.")
     public HBox view() {
         return view;
     }

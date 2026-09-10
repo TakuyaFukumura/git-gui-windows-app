@@ -6,6 +6,7 @@ import com.example.gitguiwindowsapp.config.SettingsRepository;
 import com.example.gitguiwindowsapp.git.*;
 import com.example.gitguiwindowsapp.model.*;
 import com.example.gitguiwindowsapp.ui.*;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -35,6 +36,8 @@ public final class GitGuiWindowsApp extends Application {
     private final ThemeService themeService = new ThemeService();
     private final DialogService dialogService = new DialogService(themeService);
     private ApplicationSettings settings;
+    @SuppressFBWarnings(value = "EI_EXPOSE_REP2",
+            justification = "JavaFX supplies the application stage and event handlers need its live instance.")
     private Stage stage;
     private BorderPane root;
     private RepositoryService repositoryService;

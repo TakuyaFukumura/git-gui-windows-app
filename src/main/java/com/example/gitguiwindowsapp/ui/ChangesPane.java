@@ -1,5 +1,6 @@
 package com.example.gitguiwindowsapp.ui;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import com.example.gitguiwindowsapp.model.DiffLine;
 import com.example.gitguiwindowsapp.model.DiffLineType;
 import com.example.gitguiwindowsapp.model.FileChange;
@@ -69,6 +70,8 @@ public final class ChangesPane {
         changesTable.getColumns().add(stage);
     }
 
+    @SuppressFBWarnings(value = "EI_EXPOSE_REP",
+            justification = "The live JavaFX container must be returned for composition into the application scene.")
     public SplitPane view() {
         return view;
     }

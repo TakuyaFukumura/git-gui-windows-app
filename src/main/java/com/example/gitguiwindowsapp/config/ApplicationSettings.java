@@ -132,7 +132,11 @@ public final class ApplicationSettings {
      * @throws IOException 設定ファイルを保存できない場合
      */
     public void save() throws IOException {
-        Files.createDirectories(path.getParent());
+        Path parent = path.toAbsolutePath().normalize().getParent();
+        if (parent == null) {
+            throw new IOException("設定ファイルの親ディレクトリを決定できません: " + path);
+        }
+        Files.createDirectories(parent);
         Properties properties = new Properties();
         properties.setProperty(DARK_MODE, Boolean.toString(darkMode));
         properties.setProperty(WINDOW_WIDTH, Double.toString(windowWidth));
