@@ -1,5 +1,6 @@
 package com.example.gitguiwindowsapp.ui;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import com.example.gitguiwindowsapp.model.BranchInfo;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
@@ -69,6 +70,8 @@ public final class RepositoryToolbar {
         view.setPadding(new Insets(0, 0, 10, 0));
     }
 
+    @SuppressFBWarnings(value = "EI_EXPOSE_REP",
+            justification = "The live JavaFX container must be returned for composition into the application scene.")
     public HBox view() {
         return view;
     }
