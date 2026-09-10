@@ -39,6 +39,13 @@ mvnw.cmd clean install
 mvn clean install
 ```
 
+`verify` フェーズでは SpotBugs による静的解析も実行されます。
+解析だけを実行する場合は次のコマンドを使用します。
+
+```bash
+mvn spotbugs:check
+```
+
 ## 起動
 
 ```cmd
